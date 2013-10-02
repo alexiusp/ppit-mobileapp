@@ -1,5 +1,6 @@
-<div data-role="page" data-theme="b" data-title="Kalender"
-	id="kalendc" ng-controller="KalenderCtrl3" ngm-swipeleft="nextWoche()" ngm-swiperight="prevWoche()">
+<div data-role="page" data-theme="b" data-title="Kalender" id="kalendb"
+	ng-controller="KalenderCtrl3" ngm-swipeleft="nextWoche()"
+	ngm-swiperight="prevWoche()">
 
 	<div data-role="header" data-position="fixed" data-theme="a">
 		<div data-role="navbar" class="nav-glyphs">
@@ -16,8 +17,14 @@
 				ngm-swiperight="prevWoche()" data-collapsed="!isToday(tag.datum)">
 				<h3 ng-init="tagIdx = $index" ng-click="datumSelect($event, tag.datum)"><span class="datum" style="float: left">{{tag.datum | date:'EEEE, MMM d'}} <span ngm-if="tag.feiertag_name != ''">- {{tag.feiertag_name}}</span></span>
 					<span ngm-if="hasMenues(tag)">
-						<span ngm-if="isAngemeldet(tag)"><img src="css/images/icon_spoon_color.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
-						<span ngm-if="!isAngemeldet(tag)"><img src="css/images/icon_spoon_gray.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
+						<span ngm-if="isAbotag(tagIdx)">
+							<span ngm-if="isAngemeldet(tag)"><img src="css/images/apfel_abo.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
+							<span ngm-if="!isAngemeldet(tag)"><img src="css/images/kreuz_abo.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
+						</span>
+						<span ngm-if="!isAbotag(tagIdx)">
+							<span ngm-if="isAngemeldet(tag)"><img src="css/images/icon_spoon_color.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
+							<span ngm-if="!isAngemeldet(tag)"><img src="css/images/icon_spoon_gray.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
+						</span>
 					</span>
 					<span ngm-if="hasCourses(tag)"><img src="css/images/kurse.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
 					<span ngm-if="hasEvents(tag)"><img src="css/images/info.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
@@ -52,7 +59,7 @@
 								</fieldset>
 							</li>
 							<li ng-repeat="termin in angebot.termine">
-								<a href="#" ng-href="kursedetail/{{termin.kurs_id}}">
+								<a href="#" ng-click="kurseDetails(termin.kurs_id)"><!-- ng-href="kursedetail/{{termin.kurs_id}}" -->
 									<h5>{{termin.kurs_name}}</h5>
 									<div class="ui-grid-a">
 										<div class="ui-block-a"><p class="termine location">Treffpunkt: {{termin.treffpunkt}}</p></div>
@@ -61,6 +68,22 @@
 								</a>
 							</li>
 						</ul>
+						<div ngm-if="isAbotageEnabled(tagIdx, detail)">
+							<ul data-role="listview" data-theme="d">
+								<li><label><input data-theme="e" data-mini="true" name="abotage_{{tagIdx}}_checkbox" type="checkbox" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)">{{tag.datum | date:'EEEE'}} als Abo wählen</label></li>
+								<!-- 
+								<li>
+									<fieldset data-role="controlgroup" data-mini="true" data-type="horizontal">
+										<label><input name="abotage_{{tagIdx}}" type="radio" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)" value=1>&nbsp;Ja&nbsp;</label>
+										<label><input name="abotage_{{tagIdx}}" type="radio" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)" value=0>Nein</label>
+									<select name="abotage_{{tagIdx}}" id="abotage_{{tagIdx}}" data-role="slider" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)">
+										<option value="0">Nein</option>
+										<option value="1">Ja</option>
+    							</select>
+    							</fieldset>
+								</li> -->
+							</ul>
+						</div>
 					</div>
 				</div>
 				<div ngm-if="hasEvents(tag)">
@@ -132,7 +155,26 @@
 				<p id="popupText">Error text</p>
 			</div>
 		</div>
-
+		<div id="abotagPopup" data-role="popup" data-theme="d" data-dismissible="false"
+			data-overlay-theme="b" data-transition="none"
+			data-position-to="window">
+			<div data-role="header">
+				<h1>Bitte bestätigen:</h1>
+			</div>
+			<div data-role="content">
+				<p>{{aboText}}</p>
+				<fieldset class="ui-grid-a ui-responsive">
+					<div class="ui-block-a">
+						<button ng-click="aboOk()" data-role="button"
+							data-icon="check" data-theme="b">OK</button>
+					</div>
+					<div class="ui-block-b">
+						<button ng-click="aboCancel()" data-role="button"
+							data-icon="delete" data-theme="c">Abbrechen</button>
+					</div>
+				</fieldset>
+			</div>
+		</div>
 	</div>
 	<!-- /content -->
 	<div data-role="footer" data-id="kalenderFooter" data-position="fixed" data-theme="c">
