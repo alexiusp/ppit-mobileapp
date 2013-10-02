@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns = "http://www.w3.org/ns/widgets"
+        xmlns:gap = "http://phonegap.com/ns/1.0"
+        id = "com.ppit.issmenueplus"
+        version = "1.1.3"
+        versionCode="453">
+    <name>ISS Menü+</name>
+
+    <description>
+        People and Projects IT GmbH © 2013
+    </description>
+
+    <author href="http://www.people-projects-it.com" email="produktentwicklung@people-projects-it.com">
+        Aleksei Podgaev @ People and Projects IT GmbH © 2013
+    </author>
+    <icon src="icon.png" />
+    <icon src="icon-ios57.png" gap:platform="ios" width="57" height="57" />
+	<icon src="icon-72.png" gap:platform="ios" width="72" height="72" />
+	<icon src="icon-ios114.png" gap:platform="ios" width="114" height="114" />
+	<icon src="icon-ios144.png" gap:platform="ios" width="144" height="144" />
+	<icon src="icon-ldpi36.png" gap:platform="android" gap:density="ldpi" />
+	<icon src="icon-mdpi48.png" gap:platform="android" gap:density="mdpi" />
+	<icon src="icon-72.png" gap:platform="android" gap:density="hdpi" />
+	<icon src="icon-xhdpi96.png" gap:platform="android" gap:density="xhdpi" />
+    <preference name="phonegap-version" value="2.7.0" />
+    <preference name="orientation" value="default" />
+    <preference name="target-device" value="universal" />
+    <preference name="fullscreen" value="false" />
+    <preference name="android-installLocation" value="auto" />
+    <plugin name="Storage" value="org.apache.cordova.Storage" />
+    <!-- <plugin name="Camera" value="org.apache.cordova.CameraLauncher" /> -->
+    <preference name="permissions" value="none"/>
+    <!-- <feature name="http://api.phonegap.com/1.0/camera"/> -->
+    <feature name="http://api.phonegap.com/1.0/file"/>
+	<access origin="https://192.168.98.11" />
+	<access origin="https://141.101.33.77" />
+	<access origin="https://m.people-projects-it.com" />
+
+</widget>
