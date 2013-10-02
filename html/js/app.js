@@ -1432,6 +1432,8 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 	$scope.aboChange = function(tagIdx) {
 		//console.log("aboChange: ", tagIdx);
 		$scope.aboTag = tagIdx;
+		//console.log("current: ", $scope.abotage);
+		//console.log("old: ", $scope.abotageOld);
 		Settings.setDate($scope.selectedDate);
 		var datum = $scope.kalend.tage[tagIdx].datum;
 		var tagName = $filter('date')(datum, 'EEEE');
@@ -1441,7 +1443,10 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		$("#abotagPopup").popup("open",{'positionTo':'window'});
 	};
 	$scope.aboCancel = function() {
-		$scope.abotage[$scope.aboTag] = !$scope.abotage[$scope.aboTag];
+		//console.log("cancel abotag: ", $scope.aboTag);
+		//console.log("current: ", $scope.abotage[$scope.aboTag]);
+		//console.log("old: ", $scope.abotageOld[$scope.aboTag]);
+		$scope.abotage[$scope.aboTag] = $scope.abotageOld[$scope.aboTag];
 		$("#abotagPopup").popup("close");
 	};
 	$scope.aboOk = function() {
@@ -1458,6 +1463,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 				// success handling
 				//console.log('success: ',data);
 				if(data.fehler) {
+					$scope.abotage[$scope.aboTag] = $scope.abotageOld[$scope.aboTag];
 					if(data.fehler == -2) {
 						$scope.aboText = data.fehlermessage;
 						Teilnehmer.clearProfileData();
@@ -1471,6 +1477,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 					}
 				} else {
 					// success
+					$scope.abotageOld[$scope.aboTag] = $scope.abotage[$scope.aboTag];
 					$("#abotagPopup").popup("close");
 					Teilnehmer.clearProfileData();
 					Kalend2.needRefresh = true;
@@ -1496,6 +1503,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		//console.log("Date selected:", $scope.selectedDate);
 		$.mobile.loading('show');
 		$scope.abotage = [false,false,false,false,false,false,false];
+		$scope.abotageOld = [false,false,false,false,false,false,false];
 		var profile = Teilnehmer.getProfile(function(data) {
 			// success
 			//console.log("getProfile success: ", data.teilnehmer.abotage);
@@ -1507,8 +1515,9 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 					this[key] = true;
 				}
 			}, newAbotage);
-			$scope.abotage = newAbotage;
-			//console.log(newAbotage);
+			$scope.abotage = angular.copy(newAbotage);
+			$scope.abotageOld = angular.copy(newAbotage);
+			//console.log("Abotag init: ", newAbotage);
 			$scope.$apply();
 		}, function(data) {
 			// error
