@@ -1186,14 +1186,34 @@ ppitapp.factory('Teilnehmer', ['Auth', '$resource', '$http' , function(Auth, $re
 	//console.log("Teilnehmer service");
 	var Tn = {};
 	Auth.load();
+	// resource definition
 	Tn.url = Auth.appUrl + '/index.php';
 	Tn.teilnehmerR = $resource(Tn.url, { act: 'profile' },
 			{ 	'upload': {method: 'POST', params: {'do' : 'upload'}},
 				'delete': {method: 'POST', params: {'do' : 'delete'}},
 				'pwd'	: {method: 'POST', params: {'do' : 'pwd'}}
 			});
+	// profile data container
 	Tn.profile = undefined;
+	// loading flag
 	Tn.loading = false;
+	// cached data timeout in milliseconds
+	Tn.timeout = 60000;
+	// timestamp of last load
+	Tn.lastLoad = undefined;
+	// force refresh flag and setter
+	Tn.expired = false;
+	Tn.refresh = function() {
+		Tn.expired = true;
+	};
+	// returns true if cache is expired and needs refresh
+	Tn.cacheExpired = function() {
+		var d = new Date();
+		// Tn.lastLoad === undefined means that there were no loading of profile data yet
+		// d.getTime() - Tn.lastLoad > Tn.timeout - means that timeout for profile data storage is expired
+		return (angular.isUndefined(Tn.lastLoad) || Tn.expired || (d.getTime() - Tn.lastLoad > Tn.timeout));
+	};
+	// success & error handlers
 	Tn.sHandlers = [];
 	Tn.eHandlers = [];
 	Tn.clearHandlers = function() {
@@ -1208,9 +1228,43 @@ ppitapp.factory('Teilnehmer', ['Auth', '$resource', '$http' , function(Auth, $re
 	Tn.parseTeilnehmerData = function(data) {
 		// some parsing can be done here
 	};
+	// clear cached data
 	Tn.clearProfileData = function() {
 		Tn.profile = undefined;
 		Tn.loading = false;
+	};
+	Tn.load = function() {
+		Tn.loading = true;
+		Tn.profile = Tn.teilnehmerR.get({'sk' : Auth.sessionKey}, function(data) {
+			// success handler
+			Tn.loading = false;
+			if(angular.isDefined(data)) {
+				if(data.fehler == 0) {
+					// prepare data for view
+					Tn.parseTeilnehmerData(data);
+					// set timestamp of last load
+					var d = new Date();
+					Tn.lastLoad = d.getTime();
+					// run registered success handlers
+					Tn.runHandlers(Tn.sHandlers, data);
+				} else {
+					// run registered error handlers
+					Tn.runHandlers(Tn.eHandlers, data);
+				}
+			} else {
+				// run registered error handlers
+				Tn.runHandlers(Tn.eHandlers, data);
+			}
+			// clear all handlers after successfull request
+			Tn.clearHandlers();
+		}, function(data) {
+			Tn.loading = false;
+			// error - network/server problems
+			// run registered error handlers
+			Tn.runHandlers(Tn.eHandlers, data);
+			// clear all handlers after request processed
+			Tn.clearHandlers();
+		});
 	};
 	Tn.getProfile = function(sHandler, eHandler) {
 		//console.log("Teilnehmer.getProfile");
@@ -1223,34 +1277,18 @@ ppitapp.factory('Teilnehmer', ['Auth', '$resource', '$http' , function(Auth, $re
 			Tn.eHandlers.push(eHandler);
 		}
 		// check if data is already loaded
-		if(angular.isDefined(Tn.profile) && Tn.profile.fehler == 0) {
+		// and not expired
+		if(angular.isDefined(Tn.profile) && Tn.profile.fehler == 0 && !Tn.cacheExpired()) {
 			Tn.runHandlers(Tn.sHandlers, Tn.profile);
 			Tn.clearHandlers();
 			return Tn.profile;
 		} else {
+			// prevent loading if process is already started
 			if(!Tn.loading) {
-				Tn.loading = true;
-				Tn.profile = Tn.teilnehmerR.get({'sk' : Auth.sessionKey}, function(data) {
-					// success handler
-					Tn.loading = false;
-					if(angular.isDefined(data)) {
-						if(data.fehler == 0) {
-							// prepare data for view
-							Tn.parseTeilnehmerData(data);
-							Tn.runHandlers(Tn.sHandlers, data);
-						} else {
-							Tn.runHandlers(Tn.eHandlers, data);
-						}
-					} else {
-						Tn.runHandlers(Tn.eHandlers, data);
-					}
-					Tn.clearHandlers();
-				}, function(data) {
-					Tn.loading = false;
-					// error - network problems
-					Tn.runHandlers(Tn.eHandlers, data);
-					Tn.clearHandlers();
-				});
+				// clear cached data
+				Tn.clearProfileData();
+				// start loading procedure
+				Tn.load();
 			}
 			return Tn.profile;
 		}
@@ -1447,6 +1485,10 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		//console.log("current: ", $scope.abotage[$scope.aboTag]);
 		//console.log("old: ", $scope.abotageOld[$scope.aboTag]);
 		$scope.abotage[$scope.aboTag] = $scope.abotageOld[$scope.aboTag];
+		// previous line does not work at least in some Android versions :(
+		// forced refresh of profile data
+		Teilnehmer.refresh();
+		$scope.init();
 		$("#abotagPopup").popup("close");
 	};
 	$scope.aboOk = function() {
@@ -1518,6 +1560,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			$scope.abotage = angular.copy(newAbotage);
 			$scope.abotageOld = angular.copy(newAbotage);
 			//console.log("Abotag init: ", newAbotage);
+			if(Kalend2.started && !Kalend2.needRefresh) $.mobile.loading('hide'); 
 			$scope.$apply();
 		}, function(data) {
 			// error
@@ -1782,7 +1825,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		var d = createDate($scope.kalend.tage[tagIdx].datum);
 		var td = new Date(); // today
 		//console.log("datum: ", d, " today:", td);
-		return ($scope.abotage[tagIdx]) && (d >= td);
+		return ($scope.abotageOld[tagIdx]) && (d >= td);
 	};
 	// this function should return "true" if user has courses for this day
 	$scope.hasCourses = function(tag) {
