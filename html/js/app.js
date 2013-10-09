@@ -4,7 +4,7 @@ var _VERSION = 455;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
-var _URL = "https://m.people-projects-it.com";
+//var _URL = "https://m.people-projects-it.com";
 var _URL = "https://192.168.98.11";
 /**
  * german localization
@@ -173,53 +173,57 @@ ppitapp.factory('Settings', ['Navigation', '$rootScope', '$window',
 	Settings.sleepTimestamp = 0;
 	// sleep handler
 	Settings.sleepHandler = function() {
-		//console.log("Settings.sleepHandler");
-		var d = new Date();
-		Settings.sleepTimestamp = d.getTime();
+		$window.setTimeout(function() { // iOS wrapper
+			//console.log("Settings.sleepHandler");
+			var d = new Date();
+			Settings.sleepTimestamp = d.getTime();
+		}, 0);
 	};
 	$window.document.addEventListener("pause", Settings.sleepHandler, false);
 	// resume handler
 	Settings.resumeHandler = function() {
-		console.log("Settings.resumeHandler");
-		//alert("Settings.resumeHandler!");
-		var d = new Date();
-		if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
-			//console.log("timeout!");
-			//alert("Settings.resumeHandler: timeout expired");
-			var p = Navigation.current.page;
-			var currentPage = angular.isDefined(p)? p : "";
-			var startPage = Settings.getStart();
-			if(currentPage != startPage) {
-				Navigation.go(startPage);
-				$rootScope.$apply();
-			}
-			/*
-			if(angular.isDefined(p) && startPage != currentPage &&
-					currentPage.slice(0,-5) != currentPage.slice(0,-2)) {
-				//alert("Settings.resumeHandler: redirect");
-				var page = "";
-				if(startPage == "/kalender") {
-					page = currentPage;
-					//console.log("index: ",currentPage[7]);
-					switch(currentPage[7]) {
-					case "a":
-						page = "/kalendb/b/" + currentPage[11];
-						break;
-					case "b":
-						page = "/kalenda/a/" + currentPage[11];
-						break;
-					}
-					//$location.path("/kalendb/b/0");
-				} else {
-					Settings.ls.removeItem("datum");
-					page = startPage;
+		$window.setTimeout(function() { // iOS wrapper
+			console.log("Settings.resumeHandler");
+			//alert("Settings.resumeHandler!");
+			var d = new Date();
+			if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
+				//console.log("timeout!");
+				//alert("Settings.resumeHandler: timeout expired");
+				var p = Navigation.current.page;
+				var currentPage = angular.isDefined(p)? p : "";
+				var startPage = Settings.getStart();
+				if(currentPage != startPage) {
+					Navigation.go(startPage);
+					$rootScope.$apply();
 				}
-				//console.log("page = ",page);
-				//$location.path(page);
-				Navigation.go(page, params);
-				$rootScope.$apply();
-			}*/
-		}
+				/*
+				if(angular.isDefined(p) && startPage != currentPage &&
+						currentPage.slice(0,-5) != currentPage.slice(0,-2)) {
+					//alert("Settings.resumeHandler: redirect");
+					var page = "";
+					if(startPage == "/kalender") {
+						page = currentPage;
+						//console.log("index: ",currentPage[7]);
+						switch(currentPage[7]) {
+						case "a":
+							page = "/kalendb/b/" + currentPage[11];
+							break;
+						case "b":
+							page = "/kalenda/a/" + currentPage[11];
+							break;
+						}
+						//$location.path("/kalendb/b/0");
+					} else {
+						Settings.ls.removeItem("datum");
+						page = startPage;
+					}
+					//console.log("page = ",page);
+					//$location.path(page);
+					Navigation.go(page, params);
+					$rootScope.$apply();
+				}*/
+			}
+		}, 0);
 	};
 	$window.document.addEventListener("resume", Settings.resumeHandler, false);
 
@@ -285,7 +289,7 @@ ppitapp.factory('Settings', ['Navigation', '$rootScope', '$window',
 
 /* Auth service */
 ppitapp.factory('Auth', [ function() {
-	//console.log('Auth service loading...');
+	console.log('Auth service loading...');
 	var AuthService = {};
 	// version control
 	AuthService.version = _VERSION;
