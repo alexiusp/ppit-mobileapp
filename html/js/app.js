@@ -4,8 +4,8 @@ var _VERSION = 455;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
-//var _URL = "https://m.people-projects-it.com";
-var _URL = "https://192.168.98.11";
+var _URL = "https://m.people-projects-it.com";
+//var _URL = "https://192.168.98.11";
 /**
  * german localization
  */
