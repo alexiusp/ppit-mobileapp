@@ -1208,6 +1208,7 @@ ppitapp.factory('Teilnehmer', ['Auth', '$resource', '$http' , function(Auth, $re
 	// force refresh flag and setter
 	Tn.expired = false;
 	Tn.refresh = function() {
+		//console.log("Teilnehmer refresh!");
 		Tn.expired = true;
 	};
 	// returns true if cache is expired and needs refresh
@@ -1215,7 +1216,13 @@ ppitapp.factory('Teilnehmer', ['Auth', '$resource', '$http' , function(Auth, $re
 		var d = new Date();
 		// Tn.lastLoad === undefined means that there were no loading of profile data yet
 		// d.getTime() - Tn.lastLoad > Tn.timeout - means that timeout for profile data storage is expired
-		return (angular.isUndefined(Tn.lastLoad) || Tn.expired || (d.getTime() - Tn.lastLoad > Tn.timeout));
+		var f1 = angular.isUndefined(Tn.lastLoad);
+		//console.log("f1:", f1);
+		var f2 = Tn.expired;
+		//console.log("f2:", f2);
+		var f3 = (d.getTime() - Tn.lastLoad > Tn.timeout);
+		//console.log("f3:", f3);
+		return (f1 || f2 || f3);
 	};
 	// success & error handlers
 	Tn.sHandlers = [];
@@ -1249,6 +1256,7 @@ ppitapp.factory('Teilnehmer', ['Auth', '$resource', '$http' , function(Auth, $re
 					// set timestamp of last load
 					var d = new Date();
 					Tn.lastLoad = d.getTime();
+					Tn.expired = false;
 					// run registered success handlers
 					Tn.runHandlers(Tn.sHandlers, data);
 				} else {
@@ -1408,7 +1416,7 @@ ppitapp.factory('Navigation', ['$location', '$window', '$rootScope', function($l
 	// hardware back button functionality
 	Nav.backHard = function(e) {
 		e.preventDefault();
-		if(angular.isDefined(Nav.current) && Nav.current.page == 'start') {
+		if(angular.isDefined(Nav.current) && (Nav.current.page == 'start' || Nav.current.page == 'login')) {
 	        navigator.app.exitApp();
 		} else {
 			Nav.go('start');
@@ -1488,12 +1496,14 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		//console.log("cancel abotag: ", $scope.aboTag);
 		//console.log("current: ", $scope.abotage[$scope.aboTag]);
 		//console.log("old: ", $scope.abotageOld[$scope.aboTag]);
-		$scope.abotage[$scope.aboTag] = $scope.abotageOld[$scope.aboTag];
+		//$scope.abotage[$scope.aboTag] = $scope.abotageOld[$scope.aboTag];
 		// previous line does not work at least in some Android versions :(
 		// forced refresh of profile data
-		Teilnehmer.refresh();
-		$scope.init();
 		$("#abotagPopup").popup("close");
+		Teilnehmer.refresh();
+		Kalend2.needRefresh = true;
+		$scope.dataReady = false;
+		$scope.init();
 	};
 	$scope.aboOk = function() {
 		$.mobile.loading('show');
@@ -2086,6 +2096,7 @@ function AuthCtrl($scope, Navigation, Auth, Settings) {
 	//console.log('AuthCtrl');
 	//console.log('version: ', Auth.version);
 	$scope.ctrlName = "AuthCtrl";
+	Navigation.setCurrent({"page" : "login"});
 	$scope.debug = false;
 	$scope.cred = {
 		username : "",
