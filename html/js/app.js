@@ -1,6 +1,6 @@
 'use strict';
-// version 1.2 code 455
-var _VERSION = 455;
+// version 1.2 code 456
+var _VERSION = 456;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";

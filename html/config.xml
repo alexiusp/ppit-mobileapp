@@ -3,7 +3,7 @@
         xmlns:gap = "http://phonegap.com/ns/1.0"
         id = "com.ppit.issmenueplus"
         version = "1.2"
-        versionCode="455">
+        versionCode="456">
 	<name>ISS Menü+</name>
 	<description>
 	    People and Projects IT GmbH © 2013
