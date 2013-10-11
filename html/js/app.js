@@ -1,4 +1,4 @@
-console.log'use strict';
+'use strict';
 // version 1.2 code 455
 var _VERSION = 455;
 //var _PLATFORM = "debug";
