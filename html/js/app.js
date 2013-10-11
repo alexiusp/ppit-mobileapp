@@ -1,4 +1,4 @@
-'use strict';
+console.log'use strict';
 // version 1.2 code 455
 var _VERSION = 455;
 //var _PLATFORM = "debug";
@@ -183,7 +183,7 @@ ppitapp.factory('Settings', ['Navigation', '$rootScope', '$window',
 	// resume handler
 	Settings.resumeHandler = function() {
 		$window.setTimeout(function() { // iOS wrapper
-			console.log("Settings.resumeHandler");
+			//console.log("Settings.resumeHandler");
 			//alert("Settings.resumeHandler!");
 			var d = new Date();
 			if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
@@ -289,7 +289,7 @@ ppitapp.factory('Settings', ['Navigation', '$rootScope', '$window',
 
 /* Auth service */
 ppitapp.factory('Auth', [ function() {
-	console.log('Auth service loading...');
+	//console.log('Auth service loading...');
 	var AuthService = {};
 	// version control
 	AuthService.version = _VERSION;
@@ -541,7 +541,7 @@ ppitapp.factory('Kalend2', ['Auth', '$window', function(Auth, $window) {
 	 * refreshing of current data depending on cacheDuration
 	 */
 	Kalender.onResume = function() {
-		console.log("Kalender.onResume");
+		//console.log("Kalender.onResume");
 		var currentDate = new Date();
 		var currentTime = currentDate.getTime();
 		if(currentTime - Kalender.cacheTimestamp > Kalender.cacheDuration) {
@@ -2310,8 +2310,8 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings) {
 	};
 	
 	$scope.fotoMenu = function() {
-		console.log("fotoMenu click: isEditable: ", $scope.photoEditable);
-		if($scope.photoEditable) $("#fotoSelect").popup("open");
+		//console.log("fotoMenu click: isEditable: ", $scope.photoEditable);
+		if($scope.photoEditable && _PLATFORM !== "android") $("#fotoSelect").popup("open");
 	};
 	
 	$scope.removeFoto = function() {
