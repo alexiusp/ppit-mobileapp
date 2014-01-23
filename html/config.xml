@@ -2,8 +2,8 @@
 <widget xmlns = "http://www.w3.org/ns/widgets"
         xmlns:gap = "http://phonegap.com/ns/1.0"
         id = "com.ppit.issmenueplus"
-        version = "1.2"
-        versionCode="456">
+        version = "1.2.1"
+        versionCode="457">
 	<name>ISS Menü+</name>
 	<description>
 	    People and Projects IT GmbH © 2013
@@ -35,4 +35,5 @@
 	<access origin="https://192.168.98.11" />
 	<access origin="https://141.101.33.77" />
 	<access origin="https://m.people-projects-it.com" />
+	<access origin="https://m-proxy.people-projects-it.com" />
 </widget>

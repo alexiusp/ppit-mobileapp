@@ -1,11 +1,12 @@
 'use strict';
-// version 1.2 code 456
-var _VERSION = 456;
-//var _PLATFORM = "debug";
-var _PLATFORM = "android";
+// version 1.2.1 code 457
+var _VERSION = 457;
+var _PLATFORM = "debug";
+//var _PLATFORM = "android";
 //var _PLATFORM = "ios";
-var _URL = "https://m.people-projects-it.com";
-//var _URL = "https://192.168.98.11";
+//var _URL = "https://m.people-projects-it.com";
+var _URL = "https://m-proxy.people-projects-it.com";
+//var _URL = "https://10.21.0.11";
 /**
  * german localization
  */
@@ -672,8 +673,10 @@ ppitapp.factory('Kalend2', ['Auth', '$window', function(Auth, $window) {
 			// calculate real dates for requested week indexes
 			var sDateShift = Kalender.monday.getDate() + Kalender.requestStart * 7;
 			var eDateShift = Kalender.sunday.getDate() + Kalender.requestEnd * 7;
-			sDate.setMonth(Kalender.monday.getMonth(), sDateShift);
-			eDate.setMonth(Kalender.sunday.getMonth(), eDateShift);
+			//sDate.setMonth(Kalender.monday.getMonth(), sDateShift);
+			//eDate.setMonth(Kalender.sunday.getMonth(), eDateShift);
+			sDate.setFullYear(Kalender.monday.getFullYear(), Kalender.monday.getMonth(), sDateShift);
+			eDate.setFullYear(Kalender.sunday.getFullYear(), Kalender.sunday.getMonth(), eDateShift);
 			//console.log('Kalender.loadCache monday:', Kalender.monday, ', sunday:', Kalender.sunday );
 			//console.log('Kalender.loadCache sDateShift:', sDateShift, ', eDateShift:', eDateShift );
 			//console.log('requested borders: [', Kalender.requestStart, ',', Kalender.requestEnd, ']' );
