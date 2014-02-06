@@ -2,8 +2,8 @@
 <widget xmlns = "http://www.w3.org/ns/widgets"
         xmlns:gap = "http://phonegap.com/ns/1.0"
         id = "com.ppit.issmenueplus"
-        version = "1.2.1"
-        versionCode="457">
+        version = "1.2.2"
+        versionCode="458">
 	<name>ISS Menü+</name>
 	<description>
 	    People and Projects IT GmbH © 2013

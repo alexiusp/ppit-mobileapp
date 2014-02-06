@@ -116,6 +116,14 @@ div.emptyDay {
 	background-image: url('images/icons/icon-remove-circle.png');
     background: url('images/icons/icon-remove-circle.png') no-repeat scroll 50% 50% / 32px 32px transparent;
 }
+#error-refresh .ui-icon {
+	background-image: url('images/icons/white/icon-refresh.png');
+	background: url('images/icons/white/icon-refresh.png') no-repeat scroll 50% 50% / 32px 32px transparent;
+}
+#error-ok .ui-icon {
+	background-image: url('images/icons/white/icon-ok-circle.png');
+	background: url('images/icons/white/icon-ok-circle.png') no-repeat scroll 50% 50% / 32px 32px transparent;
+}
 
 .termine {
 	padding-left: 20px;
@@ -144,7 +152,7 @@ div.emptyDay {
     position: absolute;
     top: 0.7em;
 }
-#kursePage .ui-li-thumb {
+#message .ui-li-thumb, #kursePage .ui-li-thumb {
     left: 1em;
     position: absolute;
     top: -1px;

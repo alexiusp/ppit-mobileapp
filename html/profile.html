@@ -58,14 +58,6 @@
 				<label for="startSeite" class="select">Ihre Startseite:</label>
 				<select name="startSeite" id="startSeite" ng-model="startSeite" ng-options="option.name as option.title for option in pages" style="position: absolute;">
 				</select>
-				    <!--
-				    <option value="start">Start</option> 
-				    <option value="kalender">Kalender</option>
-				    <option value="konto">Kontoauszug</option>
-				    <option value="profile">Stammdaten</option>
-				    <option value="kurse">Kurse</option>
-					<option ng-repeat="option in  pages" value="{{option.name}}">{{option.title}}</option>
-					-->
 				<fieldset class="ui-grid-a ui-responsive">
 					<div class="ui-block-a">
 						<button ng-click="saveOptions()" data-icon="check">OK</button>
@@ -92,16 +84,6 @@
 						<button ng-click="closePopup()" data-icon="delete" data-theme="c">Abbrechen</button>
 					</div>
 				</fieldset>
-			</div>
-		</div>
-		<div id="popup" data-role="popup" data-theme="d"
-			data-overlay-theme="b" data-transition="none"
-			data-position-to="window">
-			<div data-role="header">
-				<h1>Fehler</h1>
-			</div>
-			<div data-role="content">
-				<p id="popupText">Error text</p>
 			</div>
 		</div>
 	</div>
