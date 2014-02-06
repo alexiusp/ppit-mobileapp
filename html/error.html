@@ -10,7 +10,7 @@
 			<li ng-repeat="message in messages.messages">
 			<img ng-show="message.image.length > 0" ng-src="{{message.image}}" width="80px">
 			<h2 ng>{{message.title}}</h2>
-			<p ng-bind-html="message.text"></p>
+			<p ng-bind-html="message.text" style="white-space:normal;"></p>
 			</li>
 			<li ng-show="messages.messages.length == 0"><p>Leider sind keine Nachrichten vorhanden.</p></li>
 		</ul>

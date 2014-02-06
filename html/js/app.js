@@ -202,32 +202,6 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', '$rootScope', '$win
 					Navigation.go(startPage);
 					$rootScope.$apply();
 				}
-				/*
-				if(angular.isDefined(p) && startPage != currentPage &&
-						currentPage.slice(0,-5) != currentPage.slice(0,-2)) {
-					//alert("Settings.resumeHandler: redirect");
-					var page = "";
-					if(startPage == "/kalender") {
-						page = currentPage;
-						//console.log("index: ",currentPage[7]);
-						switch(currentPage[7]) {
-						case "a":
-							page = "/kalendb/b/" + currentPage[11];
-							break;
-						case "b":
-							page = "/kalenda/a/" + currentPage[11];
-							break;
-						}
-						//$location.path("/kalendb/b/0");
-					} else {
-						Settings.ls.removeItem("datum");
-						page = startPage;
-					}
-					//console.log("page = ",page);
-					//$location.path(page);
-					Navigation.go(page, params);
-					$rootScope.$apply();
-				}*/
 			}
 		}, 0);
 	};
@@ -425,7 +399,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 					"headers"	: headers,
 					"data"		: data
 			};
-			Messages.addMessage("Info","Debug",angular.toJson(debug));
+			Messages.addMessage("info","Debug",angular.toJson(debug));
 			if(success) success(data);
 		}).error(function(data, status, headers, config) {
 			//console.log("DS.request failure", data, status, headers, config);
@@ -439,9 +413,9 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 		if(status == 503) {
 			// WARTUNG MODUS
 			//console.log("WARTUNG MODUS detected!");
-			Messages.addMessage("Wait");
+			Messages.addMessage("wait");
 		} else {
-			Messages.addMessage("Wait", "Internetzugang Fehler", "App kann nicht mit Internet verbinden.");
+			Messages.addMessage("wait", "Internetzugang Fehler", "App kann nicht mit Internet verbinden.");
 		}
 	};
 	return DS;
@@ -451,16 +425,16 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 var MessagesSvc = ppitapp.factory('Messages', ['Navigation', function(Navigation) {
 	var M = {};
 	M.messages = [];
-	M.messageTypes = ["Err", "Wait", "info", "warnung"];
+	M.messageTypes = ["err", "wait", "info", "warnung"];
 	M.baseMessages = {
-			"Err"	: {
+			"err"	: {
 				"nav"	: true,
 				"action": "refresh",
 				"title"	: "Fehler",
 				"text"	: "Fehler",
 				"image"	: "css/images/warn.png"
 			},
-			"Wait"	: {
+			"wait"	: {
 				"nav"	: true,
 				"action": "refresh",
 				"title"	: "Wartung",
@@ -559,11 +533,11 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 					//console.log( "false login: ", data );
 					$.mobile.loading('hide');
 					if(data.result.status == 0) {
-						Messages.addMessage("Err", undefined, "Benutzername oder Passwort falsch!");
+						Messages.addMessage("err", undefined, "Benutzername oder Passwort falsch!");
 					} else if(data.result.status < 0){
-						Messages.addMessage("Err", undefined, data.fehlermessage);
+						Messages.addMessage("err", undefined, data.fehlermessage);
 					} else if(data.result.status > 0) {
-						Messages.addMessage("Err", undefined, "Benutzername oder Passwort falsch! Sie müssen " + data.result.status + " Sekunden warten");
+						Messages.addMessage("err", undefined, "Benutzername oder Passwort falsch! Sie müssen " + data.result.status + " Sekunden warten");
 					}
 					if (failHandler)
 						failHandler(data);
@@ -571,7 +545,7 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 			} else {
 				//console.log("login empty response",	data);
 				$.mobile.loading('hide');
-				Messages.addMessage("Err", undefined, "Login empty answer");
+				Messages.addMessage("err", undefined, "Login empty answer");
 				if (failHandler)
 					failHandler(data);
 			}
@@ -596,7 +570,7 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 			AuthService.saved = true;
 		} else {
 			//console.log('AuthService.save: local storage not available.');
-			Messages.addMessage("Err", undefined, "Warning: local storage not available!");
+			Messages.addMessage("err", undefined, "Warning: local storage not available!");
 			//showError("Warning: local storage not available!");
 		}
 	};
@@ -623,7 +597,7 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 			}
 		} else {
 			//console.log('AuthService.load: local storage not available.');
-			Messages.addMessage("Err", undefined, "Warning: local storage not available!");
+			Messages.addMessage("err", undefined, "Warning: local storage not available!");
 			//showError("Warning: local storage not available!");
 		}
 	};
@@ -639,8 +613,8 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 					AuthService.clear();
 					if(redirectFunc) redirectFunc();						
 				} else {
-					if(data.fehlermessage) Messages.addMessage("Err", undefined, data.fehlermessage);
-					else Messages.addMessage("Err", undefined, "Abmeldung Fehler");
+					if(data.fehlermessage) Messages.addMessage("err", undefined, data.fehlermessage);
+					else Messages.addMessage("err", undefined, "Abmeldung Fehler");
 					/*
 					if(data.fehler) showError(data.fehler);
 					else showError("Abmeldung Fehler");
@@ -648,7 +622,7 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 				}
 			} else {
 				//showError("Abmeldung Fehler");
-				Messages.addMessage("Err", undefined, "Abmeldung Fehler");
+				Messages.addMessage("err", undefined, "Abmeldung Fehler");
 			}
 		}, function(data) {
 			console.log("Logout failed. Connection problems.");
@@ -752,7 +726,7 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 			if(Kalender.cacheRefreshHandler != undefined) {
 				Kalender.cacheRefreshHandler();
 			} else {
-				Messages.addMessage("Err", undefined, "redirect error!");
+				Messages.addMessage("err", undefined, "redirect error!");
 			}
 		}
 		//alert("resume!");
@@ -2609,12 +2583,12 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 							$scope.$apply();
 						}
 					} else {
-						if(data.fehlermessage) Message.addMessage("Err",undefined,data.fehlermessage);
-						else Message.addMessage("Err","Stammdaten Fehler","Stammdaten Fehler!");
+						if(data.fehlermessage) Message.addMessage("err",undefined,data.fehlermessage);
+						else Message.addMessage("err","Stammdaten Fehler","Stammdaten Fehler!");
 					}
 				}
 			} else {
-				Message.addMessage("Err","Stammdaten Fehler","Stammdaten leer.");
+				Message.addMessage("err","Stammdaten Fehler","Stammdaten leer.");
 			}
 			$.mobile.loading('hide');
 		}, function(data) {
@@ -2649,7 +2623,7 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 					//alert(data.message);
 				} else {
 					// server side fehler
-					Message.addMessage("Err","Stammdaten Fehler", data.fehlermessage);
+					Message.addMessage("err","Stammdaten Fehler", data.fehlermessage);
 				}
 			}
 			$.mobile.loading('hide');
@@ -2702,7 +2676,7 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 					if(result.fehler != 0) {
 						//alert(result.fehlermessage);
 						$.mobile.loading('hide');
-						Message.addMessage("Err","Stammdaten Fehler", result.fehlermessage);
+						Message.addMessage("err","Stammdaten Fehler", result.fehlermessage);
 					} else {
 						var img = document.getElementById('profile-pic');
 						var isDefault = img.src.lastIndexOf('school');
@@ -2742,7 +2716,7 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 						break;
 					}
 					$.mobile.loading('hide');
-					Message.addMessage("Err","Stammdaten Fehler", "Fehler: " + message + ".");
+					Message.addMessage("err","Stammdaten Fehler", "Fehler: " + message + ".");
 				}, options, true);
 				// iOS: alert should be wrapped to avoid bug
 				/*
@@ -2754,7 +2728,7 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 				// error handler
 				// iOS: alert should be wrapped to avoid bug
 				$scope.timeoutId = setTimeout(function() {
-					Message.addMessage("Err","Stammdaten Fehler", "Fehler: " + message + ".");
+					Message.addMessage("err","Stammdaten Fehler", "Fehler: " + message + ".");
 					//alert('Fehler: ' + message);
 				}, 0);
 				$.mobile.loading('hide');
@@ -2762,7 +2736,7 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 		} catch(e) {
 			$scope.timeoutId = setTimeout(function() { 
 				//alert('Fehler: ' + e.message);
-				Message.addMessage("Err","Stammdaten Fehler", "Fehler: " + e.message + ".");
+				Message.addMessage("err","Stammdaten Fehler", "Fehler: " + e.message + ".");
 			}, 0);			
 		} finally {
 			$("#fotoSelect").popup("close");
@@ -2925,7 +2899,7 @@ function KontoCtrl($scope, Navigation, Auth, Settings, Datasource) {
 						$scope.$apply();
 					}
 				} else {
-					Messages.addMessage("Err", "Kontoauszug Fehler", data.fehlermessage);
+					Messages.addMessage("err", "Kontoauszug Fehler", data.fehlermessage);
 				}
 			} else if (data) {
 				// data handling
