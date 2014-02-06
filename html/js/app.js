@@ -419,6 +419,13 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 		}
 		$http(config).success(function(data, status, headers, config) {
 			//console.log("DS.request success", data, status, headers, config);
+			var debug = {
+					"config"	: config,
+					"status"	: status,
+					"headers"	: headers,
+					"data"		: data
+			};
+			Messages.addMessage("Info","Debug",angular.toJson(debug));
 			if(success) success(data);
 		}).error(function(data, status, headers, config) {
 			//console.log("DS.request failure", data, status, headers, config);
