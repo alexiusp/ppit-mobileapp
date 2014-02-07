@@ -4,7 +4,8 @@ var _VERSION = 458;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
-var _URL = "https://m.people-projects-it.com";
+//var _URL = "https://m.people-projects-it.com";
+var _URL = "https://m.ber.menuplus.de";
 //var _URL = "https://m-proxy.people-projects-it.com";
 //var _URL = "https://10.21.0.11";
 /**
@@ -393,12 +394,14 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 		}
 		$http(config).success(function(data, status, headers, config) {
 			//console.log("DS.request success", data, status, headers, config);
+			/*
 			var debug = {
 					"status"	: status,
 					"input"		: config.data,
 					"output"	: data
 			};
 			Messages.addMessage("info","Debug",angular.toJson(debug));
+			*/
 			if(success) success(data);
 		}).error(function(data, status, headers, config) {
 			//console.log("DS.request failure", data, status, headers, config);
