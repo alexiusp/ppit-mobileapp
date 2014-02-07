@@ -417,7 +417,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 			//console.log("WARTUNG MODUS detected!");
 			Messages.addMessage("wait");
 		} else {
-			Messages.addMessage("wait", "Internetzugang Fehler", "App kann nicht mit Internet verbinden.");
+			Messages.addMessage("wait", "Internetzugang Fehler", "App kann nicht mit " + _URL + " verbinden. Status: " + status);
 		}
 	};
 	return DS;
