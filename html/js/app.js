@@ -368,7 +368,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 	DS.requestStatus = undefined;
 	DS.request = function(method, params, success, failure) {
 		$.mobile.loading('show');
-		console.log("DS.request");
+		//console.log("DS.request");
 		var config = {
 				method	: DS.resource[method].method
 		};
@@ -386,7 +386,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 		});
 		var getParamsStr = getParams.join('&');
 		if(getParams.length > 0) url += '?' + getParamsStr;
-		console.log("url:", url);
+		//console.log("url:", url);
 		config.url = url;
 		// prepare POST params
 		if(DS.resource[method].method == 'POST') {
@@ -395,6 +395,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 		}
 		$http(config).success(function(data, status, headers, config) {
 			//console.log("DS.request success", data, status, headers, config);
+			alert("DS.success");
 			$.mobile.loading('hide');
 			if(angular.isDefined(data)) {
 				if(angular.isDefined(data.fehler) && data.fehler != 0) {
@@ -418,6 +419,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 				Messages.addMessage("err", "Fehler", "Empty server response");
 			}
 		}).error(function(data, status, headers, config) {
+			alert("DS.error");
 			$.mobile.loading('hide');
 			//console.log("DS.request failure", data, status, headers, config);
 			DS.handleError(status, data);
@@ -1182,7 +1184,7 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 		Datasource.request('kalend-abotag', {'abotage' : aboTage}, success);
 	};
 	Kalender.saveMenue = function(auswahl, success) {
-		alert("Kalender.saveMenue");
+		//alert("Kalender.saveMenue");
 		Datasource.request('kalend-menue', {'auswahl' : auswahl}, success);
 	};
 	return Kalender;
@@ -2236,7 +2238,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 				}
 			}
 		}
-		alert(angular.toJson(auswahl));
+		//alert(angular.toJson(auswahl));
 		//console.log("menue selected: ", auswahl);
 		Kalend2.saveMenue(auswahl, function(data) {
 			// success handling
