@@ -366,7 +366,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 			}
 	};
 	DS.requestStatus = undefined;
-	DS.request = function(method, params, success, failure) {
+	DS.request = function(method, params, successHandler, failureHandler) {
 		$.mobile.loading('show');
 		//console.log("DS.request");
 		var config = {
@@ -395,11 +395,12 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 		}
 		$http(config).success(function(data, status, headers, config) {
 			//console.log("DS.request success", data, status, headers, config);
-			alert("DS.success");
+			if(method == 'kalend-menue') alert("DS.success");
 			$.mobile.loading('hide');
 			if(angular.isDefined(data)) {
 				if(angular.isDefined(data.fehler) && data.fehler != 0) {
 					console.log("Fehler: ", data);
+					if(method == 'kalend-menue') alert("DS.success Fehler:" + data.fehler);
 					if(data.fehler == -2) {
 						// we should try to make another login if credentials are saved or redirect to lgin page if they are not
 						var reloginParams = [method, params, success, failure];
@@ -413,7 +414,8 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 						}
 					}
 				} else {
-					if(success) success(data);
+					if(method == 'kalend-menue') alert("DS.success -> successHandler");
+					if(successHandler) successHandler(data);
 				}
 			} else {
 				Messages.addMessage("err", "Fehler", "Empty server response");
@@ -423,7 +425,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 			$.mobile.loading('hide');
 			//console.log("DS.request failure", data, status, headers, config);
 			DS.handleError(status, data);
-			if(failure) failure(data);
+			if(failureHandler) failureHandler(data);
 		});
 	};
 	DS.handleError = function(status, data) {
