@@ -395,7 +395,6 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 		}
 		$http(config).success(function(data, status, headers, config) {
 			//console.log("DS.request success", data, status, headers, config);
-			if(method == 'kalend-menue') alert("DS.success");
 			$.mobile.loading('hide');
 			if(angular.isDefined(data)) {
 				if(angular.isDefined(data.fehler) && data.fehler != 0) {
@@ -731,7 +730,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 		} else {
 			// try to load them from local storage
 			AuthService.load();
-			if(angular.isDefined(AuthService.cred) && AuthService.cred.username != "") cred = AuthService.cred;
+			if(angular.isDefined(AuthService.cred) && AuthService.cred !== null) cred = AuthService.cred;
 		}
 		if(angular.isDefined(cred)) {
 			// try to login
