@@ -372,6 +372,11 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 		var config = {
 				method	: DS.resource[method].method
 		};
+		// overwrite sessionKey
+		if(angular.isDefined(DS.resource[method].params.sk)) {
+			DS.resource[method].params.sk = Auth.sessionKey;
+			//console.log("session Key overwrite: ", Auth.sessionKey);
+		}
 		// compile url
 		var url = DS.serverURL;
 		var getParams = [];
@@ -398,7 +403,6 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 			$.mobile.loading('hide');
 			if(angular.isDefined(data)) {
 				if(angular.isDefined(data.fehler) && data.fehler != 0) {
-					console.log("Fehler: ", data);
 					if(method == 'kalend-menue') alert("DS.success Fehler:" + data.fehler);
 					if(data.fehler == -2) {
 						// we should try to make another login if credentials are saved or redirect to lgin page if they are not
@@ -420,7 +424,6 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 				Messages.addMessage("err", "Fehler", "Empty server response");
 			}
 		}).error(function(data, status, headers, config) {
-			alert("DS.error");
 			$.mobile.loading('hide');
 			//console.log("DS.request failure", data, status, headers, config);
 			DS.handleError(status, data);
@@ -485,6 +488,10 @@ var MessagesSvc = ppitapp.factory('Messages', [function() {
 		M.messages.push(msg);
 		M.actionType = msg.action;
 	};
+	M.clear = function() {
+		M.messages = [];
+		M.actionType = "ok"; // "ok"/"refresh"
+	}
 	return M;
 }]);
 
@@ -577,7 +584,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 		});
 		var getParamsStr = getParams.join('&');
 		if(getParams.length > 0) url += '?' + getParamsStr;
-		console.log("url:", url);
+		//console.log("url:", url);
 		//console.log('login-cred:',cred);
 		var config = {
 				method	: 'POST',
@@ -598,6 +605,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 					//document.cookie = "sk=" + AuthService.sessionKey;
 					//console.log( 'Auth service ok ', doneHandler);
 					//$cookies.sk = AuthService.sessionKey;
+					Messages.clear();
 					var news = data.nachrichten;
 					if(angular.isDefined(news)) {
 						AuthService.news = news;
@@ -690,7 +698,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 		});
 		var getParamsStr = getParams.join('&');
 		if(getParams.length > 0) url += '?' + getParamsStr;
-		console.log("url:", url);
+		//console.log("url:", url);
 		var config = {
 			method	: 'POST',
 			url		: url	
@@ -722,30 +730,47 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 		}
 	};
 	
+	AuthService.reloginCallers = [];
+	AuthService.reloginInPorgress = false;
+	
 	AuthService.relogin = function(callerFunc, callerParams) {
-		var cred = undefined;
-		if(AuthService.remember) {
-			// if credentials is remembered
-			cred = AuthService.cred;
-		} else {
-			// try to load them from local storage
-			AuthService.load();
-			if(angular.isDefined(AuthService.cred) && AuthService.cred !== null) cred = AuthService.cred;
-		}
-		if(angular.isDefined(cred)) {
-			// try to login
-			AuthService.login(cred, function(data) {
-				AuthService.save();
-				if(angular.isDefined(callerFunc)) callerFunc.apply(this, callerParams);
-			}, function(data) {
+		AuthService.reloginCallers.push({
+			"f" : callerFunc,
+			"p"	: callerParams
+		});
+		if(!AuthService.reloginInPorgress) {
+			var cred = undefined;
+			if(AuthService.remember) {
+				// if credentials is remembered
+				cred = AuthService.cred;
+			} else {
+				// try to load them from local storage
+				AuthService.load();
+				if(angular.isDefined(AuthService.cred) && AuthService.cred !== null) cred = AuthService.cred;
+			}
+			if(angular.isDefined(cred)) {
+				AuthService.reloginInPorgress = true;
+				// try to login
+				AuthService.login(cred, function(data) {
+					AuthService.reloginInPorgress = false;
+					AuthService.save(cred);
+					//if(angular.isDefined(callerFunc)) callerFunc.apply(this, callerParams);
+					angular.forEach(AuthService.reloginCallers, function(callerObject) {
+						callerObject.f.apply(this, callerObject.p);
+					});
+					AuthService.reloginCallers = [];
+				}, function(data) {
+					AuthService.reloginInPorgress = false;
+					AuthService.reloginCallers = [];
+					AuthService.clear();
+					Navigation.go("login");
+				});
+			} else {
+				AuthService.reloginCallers = [];
+				Messages.addMessage("err", undefined, "Session expired.");
 				AuthService.clear();
 				Navigation.go("login");
-			});
-		} else {
-			alert("session expired");
-			Messages.addMessage("err", undefined, "Session expired.");
-			AuthService.clear();
-			Navigation.go("login");
+			}
 		}
 	};
 	return AuthService;
@@ -1187,8 +1212,7 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 	};
 	Kalender.saveMenue = function(auswahl, success) {
 		//alert("Kalender.saveMenue");
-		//Datasource.request('kalend-menue', {'sk' : Auth.sessionKey, 'auswahl' : auswahl}, success);
-		Datasource.request('kalend-menue', {'auswahl' : auswahl}, success);
+		Datasource.request('kalend-menue', {'sk' : Auth.sessionKey, 'auswahl' : auswahl}, success);
 	};
 	return Kalender;
 }]);
@@ -2301,7 +2325,7 @@ KalenderCtrl3.$inject = ['Navigation', 'Teilnehmer', '$scope', 'Kalend2', 'Auth'
 
 /* Start page controller */
 function StartCtrl($scope, Navigation, Auth, Kalend2, Kurse) {
-	//console.log("StartCtrl");
+	console.log("StartCtrl");
 	$scope.goKonto = function() {
 		Navigation.go("konto");
 		//$location.path("/konto");
@@ -2358,7 +2382,6 @@ function StartCtrl($scope, Navigation, Auth, Kalend2, Kurse) {
 		Navigation.go("login");
 		//$location.url("/login");
 	}
-
 }
 StartCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Kalend2', 'Kurse' ];
 
@@ -3038,13 +3061,8 @@ KurseDetailCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Kurse', '$routePara
 
 /* Messages page controller */
 function MessageCtrl($scope, Navigation, Messages, Auth) {
-	$scope.messages = {
-			messages	: Messages.messages,
-			actions		: undefined
-	};
-	$scope.title = (angular.isDefined(Messages.messages) && Messages.messages.length > 0)? Messages.messages[0].title : "Nachrichten";
-	$scope.actionType = Messages.actionType;
 	$scope.action = function() {
+		console.log("$scope.action()");
 		Messages.messages = [];
 		Navigation.goBack();
 	}
@@ -3053,6 +3071,15 @@ function MessageCtrl($scope, Navigation, Messages, Auth) {
 		Auth.clear();
 		Navigation.go("login");
 	};
+	$scope.init = function() {
+		$scope.messages = {
+				messages	: Messages.messages,
+				actions		: undefined
+		};
+		$scope.title = (angular.isDefined(Messages.messages) && Messages.messages.length > 0)? Messages.messages[0].title : "Nachrichten";
+		$scope.actionType = Messages.actionType;
+	};
+	$scope.init();
 }
 MessageCtrl.$inject = [ '$scope', 'Navigation', 'Messages', 'Auth'];
 
