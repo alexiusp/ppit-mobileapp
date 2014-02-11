@@ -2239,10 +2239,11 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		Kalend2.saveMenue(auswahl, function(data) {
 			// success handling
 			//console.log('success: ',data);
-			if(data.fehler) {
+			alert(angular.toJson(data));
+			if(angular.isDefined(data.fehler) && data.fehler != 0) {
 				//Kalender.clearCache();
 				$("#postResult").html(data.fehlermessage);///*-**********************************************************
-				//console.log('error: ', data.fehlermessage);
+				console.log('error: ', data.fehlermessage);
 			} else {
 				// success
 				$("#menuePopup").popup("close");
