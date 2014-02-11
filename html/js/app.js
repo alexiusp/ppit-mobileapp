@@ -1182,6 +1182,7 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 		Datasource.request('kalend-abotag', {'abotage' : aboTage}, success);
 	};
 	Kalender.saveMenue = function(auswahl, success) {
+		alert("Kalender.saveMenue");
 		Datasource.request('kalend-menue', {'auswahl' : auswahl}, success);
 	};
 	return Kalender;
@@ -2235,14 +2236,14 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 				}
 			}
 		}
+		alert(angular.toJson(auswahl));
 		//console.log("menue selected: ", auswahl);
 		Kalend2.saveMenue(auswahl, function(data) {
 			// success handling
 			//console.log('success: ',data);
-			alert(angular.toJson(data));
 			if(angular.isDefined(data.fehler) && data.fehler != 0) {
 				//Kalender.clearCache();
-				$("#postResult").html(data.fehlermessage);///*-**********************************************************
+				$("#postResult").html(data.fehlermessage);
 				console.log('error: ', data.fehlermessage);
 			} else {
 				// success
