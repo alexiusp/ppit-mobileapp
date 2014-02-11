@@ -403,7 +403,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 					if(method == 'kalend-menue') alert("DS.success Fehler:" + data.fehler);
 					if(data.fehler == -2) {
 						// we should try to make another login if credentials are saved or redirect to lgin page if they are not
-						var reloginParams = [method, params, success, failure];
+						var reloginParams = [method, params, successHandler, failureHandler];
 						Auth.relogin(DS.request, reloginParams);
 					} else {
 						//if(data.fehler )
@@ -743,6 +743,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 				Navigation.go("login");
 			});
 		} else {
+			alert("session expired");
 			Messages.addMessage("err", undefined, "Session expired.");
 			AuthService.clear();
 			Navigation.go("login");
@@ -1183,10 +1184,11 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 		//console.log('result: ', Kalender.wochen);
 	};
 	Kalender.saveAbo = function(aboTage, success) {
-		Datasource.request('kalend-abotag', {'abotage' : aboTage}, success);
+		Datasource.request('kalend-abotag', {'sk' : Auth.sessionKey, 'abotage' : aboTage}, success);
 	};
 	Kalender.saveMenue = function(auswahl, success) {
 		//alert("Kalender.saveMenue");
+		//Datasource.request('kalend-menue', {'sk' : Auth.sessionKey, 'auswahl' : auswahl}, success);
 		Datasource.request('kalend-menue', {'auswahl' : auswahl}, success);
 	};
 	return Kalender;
