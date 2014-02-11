@@ -403,7 +403,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 			$.mobile.loading('hide');
 			if(angular.isDefined(data)) {
 				if(angular.isDefined(data.fehler) && data.fehler != 0) {
-					if(method == 'kalend-menue') alert("DS.success Fehler:" + data.fehler);
+					//if(method == 'kalend-menue') alert("DS.success Fehler:" + data.fehler);
 					if(data.fehler == -2) {
 						// we should try to make another login if credentials are saved or redirect to lgin page if they are not
 						var reloginParams = [method, params, successHandler, failureHandler];
@@ -417,7 +417,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 						}
 					}
 				} else {
-					if(method == 'kalend-menue') alert("DS.success -> successHandler");
+					//if(method == 'kalend-menue') alert("DS.success -> successHandler");
 					if(successHandler) successHandler(data);
 				}
 			} else {
@@ -497,7 +497,7 @@ var MessagesSvc = ppitapp.factory('Messages', [function() {
 
 /* Auth service */
 var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', function($http, Messages, Navigation) {
-	console.log('Auth service start');
+	//console.log('Auth service start');
 	var AuthService = {};
 	// user credentials
 	AuthService.cred = {
@@ -605,6 +605,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 					//document.cookie = "sk=" + AuthService.sessionKey;
 					//console.log( 'Auth service ok ', doneHandler);
 					//$cookies.sk = AuthService.sessionKey;
+					AuthService.news = undefined;
 					Messages.clear();
 					var news = data.nachrichten;
 					if(angular.isDefined(news)) {
@@ -2325,7 +2326,7 @@ KalenderCtrl3.$inject = ['Navigation', 'Teilnehmer', '$scope', 'Kalend2', 'Auth'
 
 /* Start page controller */
 function StartCtrl($scope, Navigation, Auth, Kalend2, Kurse) {
-	console.log("StartCtrl");
+	//console.log("StartCtrl");
 	$scope.goKonto = function() {
 		Navigation.go("konto");
 		//$location.path("/konto");
@@ -2387,7 +2388,7 @@ StartCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Kalend2', 'Kurse' ];
 
 /* Authorization controller */
 function AuthCtrl($scope, Navigation, Auth, Settings) {
-	console.log('AuthCtrl');
+	//console.log('AuthCtrl');
 	//console.log('version: ', Auth.version);
 	$scope.ctrlName = "AuthCtrl";
 	Navigation.setCurrent({"page" : "login"});
@@ -3062,7 +3063,7 @@ KurseDetailCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Kurse', '$routePara
 /* Messages page controller */
 function MessageCtrl($scope, Navigation, Messages, Auth) {
 	$scope.action = function() {
-		console.log("$scope.action()");
+		//console.log("$scope.action()");
 		Messages.messages = [];
 		Navigation.goBack();
 	}
