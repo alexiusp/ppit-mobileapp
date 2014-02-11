@@ -269,26 +269,10 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', '$rootScope', '$win
 }]);
 
 /* db/server requests handling service */
-var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function($http, Messages) {
+var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', function($http, Messages, Auth) {
 	var DS = {};
 	DS.serverURL = _URL + '/index.php';
 	DS.resource = {
-			'login': {
-				method	: 'POST',
-				params	: {
-					'act'		: 'auth',
-					'platform'	: _PLATFORM,
-					'version'	: _VERSION
-				}
-			},
-			'logout': {
-				method	: 'POST',
-				params	: {
-					'act'		: 'auth',
-					'logout'	: 'yes',
-					'sk'		: '@sk'
-				}
-			},
 			'kalend': {
 				method	: 'GET',
 				params	: {
@@ -306,6 +290,22 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 					'sk'		: '@sk',
 					'sd'		: '@sd',
 					'ed'		: '@ed'
+				}
+			},
+			'kalend-abotag': {
+				method	: 'POST',
+				params	: {
+					'act'		: 'kalend',
+					'save'		: 'abotage',
+					'sk'		: '@sk'
+				}
+			},
+			'kalend-menue': {
+				method	: 'POST',
+				params	: {
+					'act'		: 'kalend',
+					'save'		: 'menue',
+					'sk'		: '@sk'
 				}
 			},
 			'kurse-index': {
@@ -367,6 +367,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 	};
 	DS.requestStatus = undefined;
 	DS.request = function(method, params, success, failure) {
+		$.mobile.loading('show');
 		console.log("DS.request");
 		var config = {
 				method	: DS.resource[method].method
@@ -394,16 +395,30 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 		}
 		$http(config).success(function(data, status, headers, config) {
 			//console.log("DS.request success", data, status, headers, config);
-			/*
-			var debug = {
-					"status"	: status,
-					"input"		: config.data,
-					"output"	: data
-			};
-			Messages.addMessage("info","Debug",angular.toJson(debug));
-			*/
-			if(success) success(data);
+			$.mobile.loading('hide');
+			if(angular.isDefined(data)) {
+				if(angular.isDefined(data.fehler) && data.fehler != 0) {
+					console.log("Fehler: ", data);
+					if(data.fehler == -2) {
+						// we should try to make another login if credentials are saved or redirect to lgin page if they are not
+						var reloginParams = [method, params, success, failure];
+						Auth.relogin(DS.request, reloginParams);
+					} else {
+						//if(data.fehler )
+						if(angular.isDefined(data.fehlermessage)) {
+							Messages.addMessage("err", "Fehler", data.fehlermessage);
+						} else {
+							Messages.addMessage("err", "Fehler", "Unbekannte Fehler");
+						}
+					}
+				} else {
+					if(success) success(data);
+				}
+			} else {
+				Messages.addMessage("err", "Fehler", "Empty server response");
+			}
 		}).error(function(data, status, headers, config) {
+			$.mobile.loading('hide');
 			//console.log("DS.request failure", data, status, headers, config);
 			DS.handleError(status, data);
 			if(failure) failure(data);
@@ -411,47 +426,43 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', function
 	};
 	DS.handleError = function(status, data) {
 		DS.requestStatus = status;
-		$("#wartungPopup").popup();
+		//$("#wartungPopup").popup();
 		if(status == 503) {
 			// WARTUNG MODUS
 			//console.log("WARTUNG MODUS detected!");
 			Messages.addMessage("wait");
 		} else {
-			Messages.addMessage("wait", "Internetzugang Fehler", "App kann nicht mit " + _URL + " verbinden. Status: " + status);
+			Messages.addMessage("wait", "Verbindungsfehler", "App kann nicht mit " + _URL + " verbunden werden. Bitte überprüfen Sie Ihre Internetverbindung.");
 		}
 	};
 	return DS;
 }]);
 
-/* Messages service - storage for error messages and news from server (feature TODO) */
-var MessagesSvc = ppitapp.factory('Messages', ['Navigation', function(Navigation) {
+/* Messages service - storage for error messages and news from server */
+var MessagesSvc = ppitapp.factory('Messages', [function() {
 	var M = {};
 	M.messages = [];
 	M.messageTypes = ["err", "wait", "info", "warnung"];
 	M.baseMessages = {
 			"err"	: {
-				"nav"	: true,
 				"action": "refresh",
 				"title"	: "Fehler",
 				"text"	: "Fehler",
 				"image"	: "css/images/warn.png"
 			},
 			"wait"	: {
-				"nav"	: true,
 				"action": "refresh",
 				"title"	: "Wartung",
 				"text"	: "Derzeit aktualisieren wir für Sie unser System. Deshalb steht dieser Dienst vorübergehend nicht zur Verfügung. Wir danken für Ihr Verständnis und bitten Sie es später noch einmal zu versuchen.",
 				"image"	: "css/images/wartung.png"
 			},
 			"info"	: {
-				"nav"	: false,
 				"action": "ok",
 				"title"	: "Info",
 				"text"	: "",
 				"image"	: "css/images/info_big.png"
 			},
 			"warnung"	: {
-				"nav"	: false,
 				"action": "ok",
 				"title"	: "Warnung",
 				"text"	: "",
@@ -470,21 +481,68 @@ var MessagesSvc = ppitapp.factory('Messages', ['Navigation', function(Navigation
 		if(angular.isDefined(text)) msg.text = text;
 		M.messages.push(msg);
 		M.actionType = msg.action;
-		if(M.baseMessages[type].nav) Navigation.go("error");
 	};
 	return M;
 }]);
 
-
-
 /* Auth service */
-var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Datasource, Messages) {
-	//console.log('Auth service loading...');
+var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', function($http, Messages, Navigation) {
+	console.log('Auth service start');
 	var AuthService = {};
 	// user credentials
 	AuthService.cred = {
 		username : "",
 		password : ""
+	};
+	AuthService.serverURL = _URL + '/index.php';
+	AuthService.resource = {
+			'login': {
+				method	: 'POST',// hardcoded in login()
+				params	: {
+					'act'		: 'auth',
+					'platform'	: _PLATFORM,
+					'version'	: _VERSION
+				}
+			},
+			'logout': {
+				method	: 'POST',// hardcoded in logout()
+				params	: {
+					'act'		: 'auth',
+					'logout'	: 'yes',
+					'sk'		: '@sk'
+				}
+			}
+	};
+	AuthService.request = function(config, successHandler, failHandler) {
+		$.mobile.loading('show');
+		$http(config).success(function(data, status, headers, config) {
+			$.mobile.loading('hide');
+			if(angular.isDefined(data)) {
+				if(angular.isDefined(data.fehler) && data.fehler != 0) {
+					console.log("Fehler: ", data);
+					if(angular.isDefined(data.fehlermessage)) {
+						Messages.addMessage("err", "Fehler", data.fehlermessage);
+					} else {
+						Messages.addMessage("err", "Fehler", "Unbekannte Fehler: " + data.fehler);
+					}
+					if(failHandler) failHandler(data);
+				} else {
+					if(successHandler) successHandler(data);
+				}
+			} else {
+				Messages.addMessage("err", "Fehler", "Empty server response");
+			}
+		}).error(function(data, status, headers, config) {
+			$.mobile.loading('hide');
+			if(status == 503) {
+				// WARTUNG MODUS
+				//console.log("WARTUNG MODUS detected!");
+				Messages.addMessage("wait");
+			} else {
+				Messages.addMessage("wait", "Verbindungsfehler", "App kann nicht mit " + _URL + " verbunden werden. Bitte überprüfen Sie Ihre Internetverbindung.");
+			}
+			if(failHandler) failHandler(data);
+		});
 	};
 	// user session key
 	AuthService.sessionKey = "";
@@ -502,30 +560,44 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 	// additional rights
 	AuthService.rights = {};
 	// news loaded from server
-	AuthService.news = {};
+	AuthService.news = undefined;
 	// site url
 	// main authorization function
 	AuthService.login = function(cred, doneHandler, failHandler) {
-		$.mobile.loading('show');
+		var url = AuthService.serverURL;
+		var getParams = [];
+		angular.forEach(AuthService.resource.login.params, function(value, key) {
+			//console.log(key + ': ' + value);
+			var urlPart = key + "=" + value;
+			//console.log(urlPart);
+			getParams.push(urlPart);
+		});
+		var getParamsStr = getParams.join('&');
+		if(getParams.length > 0) url += '?' + getParamsStr;
+		console.log("url:", url);
 		//console.log('login-cred:',cred);
-		Datasource.request('login', cred, function(data) {
-			//console.log("Auth.success", data);
+		var config = {
+				method	: 'POST',
+				url		: url,
+				data	: $.param(cred),
+				headers	: {'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'}
+		};
+		AuthService.request(config, function(data) {
 			if (data != "") {
 				if (data.result.status == "ok") {
 					// login request successfull
 					//console.log('hiding page');
-					if(AuthService.remember) AuthService.cred = cred;
 					AuthService.sessionKey = data.result.key;
 					AuthService.pages = data.pages;
 					AuthService.rights = data.rechte;
 					setCookie('sk',AuthService.sessionKey,null,'/');
-					AuthService.save();
+					AuthService.save(cred);
 					//document.cookie = "sk=" + AuthService.sessionKey;
 					//console.log( 'Auth service ok ', doneHandler);
 					//$cookies.sk = AuthService.sessionKey;
-					$.mobile.loading('hide');
 					var news = data.nachrichten;
 					if(angular.isDefined(news)) {
+						AuthService.news = news;
 						angular.forEach(news, function(meldung, type) {
 							Messages.addMessage(type, undefined, meldung);
 						});
@@ -533,7 +605,6 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 					if (doneHandler) doneHandler(data);
 				} else {
 					//console.log( "false login: ", data );
-					$.mobile.loading('hide');
 					if(data.result.status == 0) {
 						Messages.addMessage("err", undefined, "Benutzername oder Passwort falsch!");
 					} else if(data.result.status < 0){
@@ -546,26 +617,21 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 				}
 			} else {
 				//console.log("login empty response",	data);
-				$.mobile.loading('hide');
 				Messages.addMessage("err", undefined, "Login empty answer");
 				if (failHandler)
 					failHandler(data);
 			}
-		}, function(data) {
-			//console.log("Auth.failure", data);
-			$.mobile.loading('hide');
-			if (failHandler)
-				failHandler(data);
-		});
+		}, failHandler);
 	};
 	
 	// saving credentials for further usage
-	AuthService.save = function() {
+	AuthService.save = function(cred) {
+		if(AuthService.remember) AuthService.cred = cred;
 		//console.log('AuthService.save: start.');
 		var ls = window.localStorage;
 		if (ls) {
 			if(AuthService.remember)
-				ls.setItem("cred", angular.toJson(AuthService.cred));
+				ls.setItem("cred", angular.toJson(cred));
 			ls.setItem("pages", angular.toJson(AuthService.pages));
 			ls.setItem("rights", angular.toJson(AuthService.rights));
 			ls.setItem("sk", AuthService.sessionKey);
@@ -606,28 +672,30 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 	
 	// logout function
 	AuthService.logout = function(redirectFunc) {
-		$.mobile.loading('show');
-		Datasource.request('logout', {"sk":AuthService.sessionKey}, function(data) {
-			//console.log("Auth logout: ", data);
-			if (data != "") {
-				if(data.fehler == 0) {
-					// successfully logged out
-					AuthService.clear();
-					if(redirectFunc) redirectFunc();						
-				} else {
-					if(data.fehlermessage) Messages.addMessage("err", undefined, data.fehlermessage);
-					else Messages.addMessage("err", undefined, "Abmeldung Fehler");
-					/*
-					if(data.fehler) showError(data.fehler);
-					else showError("Abmeldung Fehler");
-					*/  
-				}
-			} else {
-				//showError("Abmeldung Fehler");
-				Messages.addMessage("err", undefined, "Abmeldung Fehler");
-			}
+		console.log("AuthService.logout");
+		var params = {"sk":AuthService.sessionKey};
+		// compile url
+		var url = AuthService.serverURL;
+		var getParams = [];
+		angular.forEach(AuthService.resource.logout.params, function(value, key) {
+			//console.log(key + ': ' + value);
+			var urlPart = key + "=";
+			var valueStr = value + '';
+			if(valueStr.charAt(0) == '@') urlPart += params[valueStr.slice(1)];
+			else urlPart += valueStr;
+			getParams.push(urlPart);
+		});
+		var getParamsStr = getParams.join('&');
+		if(getParams.length > 0) url += '?' + getParamsStr;
+		console.log("url:", url);
+		var config = {
+			method	: 'POST',
+			url		: url	
+		};
+		AuthService.request(config, function(data) {
+			AuthService.clear();
+			if(redirectFunc) redirectFunc();
 		}, function(data) {
-			console.log("Logout failed. Connection problems.");
 			AuthService.clear();
 			if(redirectFunc) redirectFunc();
 		});
@@ -648,6 +716,32 @@ var AuthSvc = ppitapp.factory('Auth', ['Datasource', 'Messages', function(Dataso
 		if(ls) {
 			//ls.removeItem("cred");
 			ls.removeItem("sk");
+		}
+	};
+	
+	AuthService.relogin = function(callerFunc, callerParams) {
+		var cred = undefined;
+		if(AuthService.remember) {
+			// if credentials is remembered
+			cred = AuthService.cred;
+		} else {
+			// try to load them from local storage
+			AuthService.load();
+			if(angular.isDefined(AuthService.cred) && AuthService.cred.username != "") cred = AuthService.cred;
+		}
+		if(angular.isDefined(cred)) {
+			// try to login
+			AuthService.login(cred, function(data) {
+				AuthService.save();
+				if(angular.isDefined(callerFunc)) callerFunc.apply(this, callerParams);
+			}, function(data) {
+				AuthService.clear();
+				Navigation.go("login");
+			});
+		} else {
+			Messages.addMessage("err", undefined, "Session expired.");
+			AuthService.clear();
+			Navigation.go("login");
 		}
 	};
 	return AuthService;
@@ -1028,7 +1122,7 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 			var result = hndlr();
 			if(result === false) break;
 		}
-		hideError();
+		//hideError();
 	};
 	
 	/*
@@ -1083,6 +1177,12 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 		Kalender.rightCacheBorder = Kalender.requestEnd;
 		//console.log('length: ',Kalender.wochen.length);
 		//console.log('result: ', Kalender.wochen);
+	};
+	Kalender.saveAbo = function(aboTage, success) {
+		Datasource.request('kalend-abotag', {'abotage' : aboTage}, success);
+	};
+	Kalender.saveMenue = function(auswahl, success) {
+		Datasource.request('kalend-menue', {'auswahl' : auswahl}, success);
 	};
 	return Kalender;
 }]);
@@ -1202,27 +1302,6 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 				Kurse.raiseError(-1, "Error connecting to the server!");
 				console.log(data);
 			});
-			
-			/*
-			Kurse.meineKurse = Kurse.kurseList.meine({'sk' : Auth.sessionKey}, function(data) {
-				if(angular.isDefined(data) && data.fehler == 0) {
-					if(Kurse.errorFlag) Kurse.clearError();
-					// prepare data for view (some parsing done in parseKurs() function)
-					angular.forEach(data.kursliste, Kurse.parseKurs, data.kursliste);
-					var cd = new Date();
-					Kurse.lastRefresh = cd.valueOf();
-				} else {
-					// error in request data
-					if(angular.isDefined(data) && angular.isDefined(data.fehlermessage)) {
-						Kurse.raiseError(data.fehler, data.fehlermessage);
-					} else Kurse.raiseError(-4, "Incorrect data received!");
-				}
-			}, function(data) {
-				// error connecting to server
-				Kurse.raiseError(-1, "Error connecting to the server!");
-				console.log(data);
-			});
-			*/
 		} else {
 			if(handler) handler(Kurse.meineKurse);
 		}
@@ -1286,65 +1365,6 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 			Kurse.raiseError(-1, "Error connecting to the server!");
 			console.log(data);
 		});
-		
-		
-		/*
-		// we must change default header from json to urlencoded
-		$http.defaults.headers.post = { "Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8" };
-		// and use jquery.param function to pass correct parameters
-		Kurse.kurseList.save({'sk' : Auth.sessionKey}, $.param({
-					set: "kurse",
-					anmeldung: statusData
-				}), function(data) {
-			//console.log("success");
-			//console.log(data.kurs);
-			if(angular.isDefined(data) && data.fehler == 0) {
-				if(Kurse.errorFlag) Kurse.clearError();
-				var editedKursList = [];
-				editedKursList.push(data.kurs);
-				//console.log("preparsed kurs list:", editedKursList);
-				angular.forEach(editedKursList, Kurse.parseKurs, editedKursList);
-				//console.log("postparsed kurs list:", editedKursList);
-				var editedKurs = editedKursList[0];
-				//console.log("editedKurs ", editedKurs);
-				var found = false;
-				// search for kurs in cached arrays
-				//console.log("search for kurs in cached arrays:");
-				//console.log("edited kurs id ", editedKurs.kursstammdaten.kurs_id);
-				angular.forEach(Kurse.kurse.kursliste, function(value, key) {
-					//console.log("selected kurs id ", value.kursstammdaten.kurs_id);
-					if(!found && value.kursstammdaten.kurs_id == editedKurs.kursstammdaten.kurs_id) {
-						found = true;
-						//console.log(found);
-						this[key] = editedKurs;
-					}
-				}, Kurse.kurse.kursliste);
-				// if not found try to look in meinekurse array
-				if(!found && Kurse.meineKurse.kursliste) angular.forEach(Kurse.meineKurse.kursliste, function(value, key) {
-					if(!found && value.kursstammdaten.kurs_id == kurslist[0].kursstammdaten.kurs_id) {
-						found = true;
-						this[key] = editedKurs;
-					}
-				}, Kurse.meineKurse.kursliste);
-				angular.copy(editedKurs, Kurse.currentKurs);
-				// we need to refresh data as soon as possible
-				Kurse.meineKurse = [];
-				//console.log("end of saving");
-				//console.log(Kurse.kurse.kursliste);
-				//Kurse.getKurs(kurslist[0].kursstammdaten.kurse_id);
-			} else {
-				// error in request data
-				if(angular.isDefined(data) && angular.isDefined(data.fehlermessage)) {
-					Kurse.raiseError(data.fehler, data.fehlermessage);
-				} else Kurse.raiseError(-4, "Incorrect data received!");
-			}
-		}, function(data) {
-			// error connecting to server
-			Kurse.raiseError(-1, "Error connecting to the server!");
-			console.log(data);
-		});
-		*/
-		//console.log(answer);
 	};
 	
 	Kurse.errorHandler = undefined;
@@ -1435,7 +1455,6 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 			break;
 		}
 	};
-	
 	Kurse.getKurs = function(kursId) {
 		//console.log("getKurs: ", kursId);
 		var found = false;
@@ -1463,11 +1482,9 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 		if(found) return Kurse.currentKurs;
 		else return {};
 	};
-	
 	Kurse.getLastPage = function() {
 		return Kurse.lastPage;
 	};
-	
 	Kurse.clear = function() {
 		Kurse.currentKurs = {};
 		Kurse.kurse = [];
@@ -1475,23 +1492,12 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 		Kurse.lastRefresh = 0;
 		Kurse.errorFlag = false;
 	};
-
 	return Kurse;
 }]);
 /* Teilnehmer(Profile) service v.1 */
 var ProfileSvc = ppitapp.factory('Teilnehmer', ['Auth', 'Datasource', function(Auth, Datasource) {
 	//console.log("Teilnehmer service");
 	var Tn = {};
-	/*
-	Auth.load();
-	// resource definition
-	Tn.url = Auth.appUrl + '/index.php';
-	Tn.teilnehmerR = $resource(Tn.url, { act: 'profile' },
-			{ 	'upload': {method: 'POST', params: {'do' : 'upload'}},
-				'delete': {method: 'POST', params: {'do' : 'delete'}},
-				'pwd'	: {method: 'POST', params: {'do' : 'pwd'}}
-			});
-	*/
 	// profile data container
 	Tn.profile = undefined;
 	// loading flag
@@ -1611,8 +1617,8 @@ var ProfileSvc = ppitapp.factory('Teilnehmer', ['Auth', 'Datasource', function(A
 	return Tn;
 }]);
 
-/* Navigation service v.1 */
-var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$rootScope', function($location, $window, $rootScope) {
+/* Navigation service v.1.1 */
+var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$rootScope', 'Messages', function($location, $window, $rootScope, Messages) {
 	//console.log("Navigation service");
 	var Nav = {};
 	// current page
@@ -1684,8 +1690,7 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 			}
 		}
 	};
-	// main navigation function
-	Nav.go = function(page, params, isBack) {
+	Nav.prepareUrl = function(page, params) {
 		// core page url selection
 		var url = this.urlParse(page);
 		var paramTeil = "";
@@ -1702,11 +1707,22 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 		default:
 			paramTeil = "";
 		}
+		return url + paramTeil;
+	}
+	// main navigation function
+	Nav.go = function(page, params, isBack) {
+		var isMsg = Messages.messages.length > 0;
+		var newUrl = Nav.prepareUrl(page, params);
 		if(!isBack && angular.isDefined(this.current)) this.history.push(angular.copy(this.current));
-		this.current = {"page": page, "params": params};
-		var newUrl = url + paramTeil;
-		//console.log("Nav.go result: ", newUrl);
-		$location.path(newUrl);
+		if(!isBack && isMsg) {
+			var skippedPage = {"page": page, "params": params};
+			this.history.push(skippedPage);
+			$location.path("error");
+		} else {
+			this.current = {"page": page, "params": params};
+			//console.log("Nav.go result: ", newUrl);
+			$location.path(newUrl);
+		}
 	};
 	// "go back" function
 	Nav.goBack = function(hard) {
@@ -1812,50 +1828,37 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		$scope.init();
 	};
 	$scope.aboOk = function() {
-		$.mobile.loading('show');
 		var abotageVal = 0;
 		angular.forEach($scope.abotage, function(val, key) {
 			abotageVal += (val) ? Math.pow(2, key) : 0;
 		});
-		var url = Auth.appUrl + '/index.php?act=kalend&save=abotage&sk='
-		+ Auth.sessionKey;
-		//console.log("new abotage: ", abotageVal);
-		$.post(url, {'abotage' : abotageVal})
-			.success(function(data) {
-				// success handling
-				//console.log('success: ',data);
-				if(data.fehler) {
-					$scope.abotage[$scope.aboTag] = $scope.abotageOld[$scope.aboTag];
-					if(data.fehler == -2) {
-						$scope.aboText = data.fehlermessage;
-						Teilnehmer.clearProfileData();
-						Kalend2.needRefresh = true;
-						$scope.dataReady = false;
-						$("#abotagPopup").popup("close");
-						$scope.init();
-					} else {
-						$scope.aboText = data.fehlermessage;
-						//console.log('error: ', data.fehlermessage);
-					}
-				} else {
-					// success
-					$scope.abotageOld[$scope.aboTag] = $scope.abotage[$scope.aboTag];
-					$("#abotagPopup").popup("close");
+		Kalend2.saveAbo(abotageVal, function(data) {
+			// success handling
+			//console.log('success: ',data);
+			if(data.fehler) {
+				$scope.abotage[$scope.aboTag] = $scope.abotageOld[$scope.aboTag];
+				if(data.fehler == -2) {
+					$scope.aboText = data.fehlermessage;
 					Teilnehmer.clearProfileData();
 					Kalend2.needRefresh = true;
 					$scope.dataReady = false;
+					$("#abotagPopup").popup("close");
 					$scope.init();
+				} else {
+					$scope.aboText = data.fehlermessage;
+					//console.log('error: ', data.fehlermessage);
 				}
-				$.mobile.loading('hide');
-			}).error(function(data) {
-				// error handling
-				//console.log('error: ',data);
-				showError(angular.toJson(data));
-				//Kalender.clearCache();
-				$.mobile.loading('hide');
-			});
+			} else {
+				// success
+				$scope.abotageOld[$scope.aboTag] = $scope.abotage[$scope.aboTag];
+				$("#abotagPopup").popup("close");
+				Teilnehmer.clearProfileData();
+				Kalend2.needRefresh = true;
+				$scope.dataReady = false;
+				$scope.init();
+			}
+		});
 		//$scope.abotage[$scope.aboTag] = !$scope.abotage[$scope.aboTag];
-		
 	};
 	/*
 	 * initialization function
@@ -1863,7 +1866,6 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 	$scope.init = function() {
 		//console.log("KalenderCtrl3.init");
 		//console.log("Date selected:", $scope.selectedDate);
-		$.mobile.loading('show');
 		$scope.abotage = [false,false,false,false,false,false,false];
 		$scope.abotageOld = [false,false,false,false,false,false,false];
 		var profile = Teilnehmer.getProfile(function(data) {
@@ -1880,7 +1882,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			$scope.abotage = angular.copy(newAbotage);
 			$scope.abotageOld = angular.copy(newAbotage);
 			//console.log("Abotag init: ", newAbotage);
-			if(Kalend2.started && !Kalend2.needRefresh) $.mobile.loading('hide'); 
+			//if(Kalend2.started && !Kalend2.needRefresh) $.mobile.loading('hide'); 
 			$scope.$apply();
 		}, function(data) {
 			// error
@@ -1941,32 +1943,6 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 					$scope.angebote = dResult;					
 				}*/
 			}
-			// calculate links for navigation buttons - deprecated
-			/*
-			$scope.prevUrl = $scope.nextUrl = $scope.aktUrl = "/kalend";
-			switch ($scope.type) {
-			case "a":
-				$scope.prevUrl += "c/c/" + ($scope.shift - 1);
-				$scope.nextUrl += "b/b/" + ($scope.shift + 1);
-				$scope.aktUrl += "d/d/0";
-				break;
-			case "b":
-				$scope.prevUrl += "a/a/" + ($scope.shift - 1);
-				$scope.nextUrl += "c/c/" + ($scope.shift + 1);
-				$scope.aktUrl += "d/d/0";
-				break;
-			case "c":
-				$scope.prevUrl += "b/b/" + ($scope.shift - 1);
-				$scope.nextUrl += "a/a/" + ($scope.shift + 1);
-				$scope.aktUrl += "d/d/0";
-				break;
-			case "d":
-				$scope.prevUrl += "a/a/" + ($scope.shift - 1);
-				$scope.nextUrl += "c/c/" + ($scope.shift + 1);
-				$scope.aktUrl += "b/b/0";
-				break;
-			}
-			*/
 		} else {
 			//console.log('KalenderCtrl2.init auth error!');
 			Navigation.go('login');
@@ -1985,8 +1961,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			$scope.kalend = res;
 			$scope.dataReady = true;
 			$scope.$apply();
-			//console.log("data received: ", $scope.kalend);
-			//$.mobile.loading('hide');			
+			//console.log("data received: ", $scope.kalend);			
 		}
 	};
 	$scope.successDetailHandler = function() {
@@ -1999,7 +1974,6 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			if($scope.kalend.details && $scope.kalend.details.length > 0 && $scope.kalend.details.detail_kostenarten)
 				$scope.selectedMenue.menue = angular.copy($scope.kalend.details[0].detail_kostenarten[0].kostenarten[0].menues[0]);
 			$scope.$apply();
-			$.mobile.loading('hide');
 		}
 	};
 	// error handler for Kalender
@@ -2243,7 +2217,6 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		$scope.init();
 	};
 	$scope.menueOk = function() {
-		$.mobile.loading('show');
 		//console.log('menue selected!');
 		$("#postResult").html("");
 		// prepare auswahl structure
@@ -2263,36 +2236,22 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			}
 		}
 		//console.log("menue selected: ", auswahl);
-		// make a request
-		var url = Auth.appUrl + '/index.php?act=kalend&save=menue&sk='
-			+ Auth.sessionKey;
-		$.post(url, {'auswahl' : auswahl})
-			.success(function(data) {
-				// success handling
-				//console.log('success: ',data);
-				if(data.fehler) {
-					//Kalender.clearCache();
-					$("#postResult").html(data.fehlermessage);
-					//console.log('error: ', data.fehlermessage);
-					$.mobile.loading('hide');
-				} else {
-					// success
-					$("#menuePopup").popup("close");
-					$scope.cleanMenueDialog();
-					$.mobile.loading('hide');
-					Kalend2.needRefresh = true;
-					$scope.dataReady = false;
-					$scope.init();
-				}
-			})
-			.error(function(data) {
-				// error handling
-				//console.log('error: ',data);
-				$("#postResult").html(angular.toJson(data));
-				showError(angular.toJson(data));
+		Kalend2.saveMenue(auswahl, function(data) {
+			// success handling
+			//console.log('success: ',data);
+			if(data.fehler) {
 				//Kalender.clearCache();
-				$.mobile.loading('hide');
-			});
+				$("#postResult").html(data.fehlermessage);///*-**********************************************************
+				//console.log('error: ', data.fehlermessage);
+			} else {
+				// success
+				$("#menuePopup").popup("close");
+				$scope.cleanMenueDialog();
+				Kalend2.needRefresh = true;
+				$scope.dataReady = false;
+				$scope.init();
+			}
+		});
 		//$scope.$apply();
 	};
 	
@@ -2397,9 +2356,8 @@ function StartCtrl($scope, Navigation, Auth, Kalend2, Kurse) {
 StartCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Kalend2', 'Kurse' ];
 
 /* Authorization controller */
-function AuthCtrl($scope, Navigation, Auth, Settings, Messages) {
-	$.mobile.loading('show');
-	//console.log('AuthCtrl');
+function AuthCtrl($scope, Navigation, Auth, Settings) {
+	console.log('AuthCtrl');
 	//console.log('version: ', Auth.version);
 	$scope.ctrlName = "AuthCtrl";
 	Navigation.setCurrent({"page" : "login"});
@@ -2429,7 +2387,9 @@ function AuthCtrl($scope, Navigation, Auth, Settings, Messages) {
 		$scope.cred = angular.copy($scope.user);
 		Auth.remember = $scope.remember;
 		Auth.login($scope.cred, function(data) {
-			//console.log('AuthCtrl success login');
+			console.log('AuthCtrl success login');
+			Navigation.go($scope.userStart);
+			/*
 			if(angular.isDefined(data.nachrichten)) {
 				Messages.setAction(function() {
 					Navigation.go(Settings.getStart());
@@ -2438,6 +2398,7 @@ function AuthCtrl($scope, Navigation, Auth, Settings, Messages) {
 			} else {
 				Navigation.go($scope.userStart);
 			}
+			*/
 			$scope.$apply();
 		});
 	};
@@ -2445,14 +2406,13 @@ function AuthCtrl($scope, Navigation, Auth, Settings, Messages) {
 	Auth.load();
 	$scope.userStart = Settings.getStart();
 	if (Auth.sessionKey) {
-		//console.log("AuthCtrl.userStart: ", $scope.userStart);
+		console.log("AuthCtrl.userStart: ", $scope.userStart);
 		Navigation.go($scope.userStart);
 	} else {
 		$scope.reset();
-		$.mobile.loading('hide');
 	}
 }
-AuthCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Settings', 'Messages' ];
+AuthCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Settings' ];
 
 /* Profile controller */
 function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
@@ -2509,20 +2469,17 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 			//console.log(Auth.authUrl + "&act=profile&sk=" + Auth.sessionKey);
 			Teilnehmer.savePassword($scope.pwd.pwd1, function(data) {
 				//console.log("savePassword: ", data);
-				// check if there is any answer
-				if (data != "") {
-					// check if there is error code
-					if(data.fehler != 0) {
-						//console.log("Setting errortext: ", data.fehlermessage);
-						$scope.pwd.error = data.fehlermessage;
-						$scope.$apply();
-					} else {
-						// success
-						$scope.pwd.error = "";
-						if(Auth.remember) Auth.cred.password = $scope.pwd.pwd1;
-						Auth.save();
-						$("#passwordEdit").popup("close");
-					}
+				// check if there is error code
+				if(data.fehler != 0) {
+					//console.log("Setting errortext: ", data.fehlermessage);
+					$scope.pwd.error = data.fehlermessage;
+					$scope.$apply();
+				} else {
+					// success
+					$scope.pwd.error = "";
+					if(Auth.remember) Auth.cred.password = $scope.pwd.pwd1;
+					Auth.save();
+					$("#passwordEdit").popup("close");
 				}
 			});
 		}
@@ -2539,62 +2496,27 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 	
 	$scope.loadProfile = function() {
 		//console.log('loadProfile()');
-		$.mobile.loading('show');
 		Teilnehmer.getProfile(function(data) {
 			//console.log("loadProfile: ", data);
-			if (data != "") {
-				if(data.fehler == 0) {
-					// successfully loaded data
-					$scope.user.userFullName = data.teilnehmer.vorname + " " + data.teilnehmer.name;
-					$scope.user.gender = data.teilnehmer.geschlecht_id;
-					if(data.teilnehmer.bild_id == "") {
-						if(data.teilnehmer.geschlecht_id == 1) {
-							$scope.user.userPic = "css/images/schoolgirl.png";
-						} else {
-							$scope.user.userPic = "css/images/schoolboy.png";
-						}
+			if(data.fehler == 0) {
+				// successfully loaded data
+				$scope.user.userFullName = data.teilnehmer.vorname + " " + data.teilnehmer.name;
+				$scope.user.gender = data.teilnehmer.geschlecht_id;
+				if(data.teilnehmer.bild_id == "") {
+					if(data.teilnehmer.geschlecht_id == 1) {
+						$scope.user.userPic = "css/images/schoolgirl.png";
 					} else {
-						$scope.user.userPic = _URL + '/img/cache/customer' + Settings.getCustomerID() + '/' + data.teilnehmer.bild_id + '.jpg?v=' + Math.floor((Math.random()*10)+1) + '&sk=' + Auth.sessionKey;
-						/*
-						$.get($scope.user.userPic, function(data) {
-							alert('image request result: ' + data);
-						});*/
+						$scope.user.userPic = "css/images/schoolboy.png";
 					}
-					$scope.$apply();
 				} else {
-					if(data.fehler == -2) {
-						if(Auth.saved) {
-							Auth.login(Auth.cred, function() {
-								// success handler
-								Auth.save();
-								//console.log('Auth success. reinitializing');
-								$scope.loadProfile();
-							}, function() {
-								// error handler
-								Auth.clear();
-								//console.log('Auth fail. redirecting to login page...');
-								Navigation.go("login");
-								//$location.path("/login");
-								$scope.$apply();
-							});
-						} else {
-							//console.log('Session expired. Credentials not saved. Redirecting to login page...');
-							Auth.clear();
-							Navigation.go("login");
-							//$location.path('/login');
-							$scope.$apply();
-						}
-					} else {
-						if(data.fehlermessage) Message.addMessage("err",undefined,data.fehlermessage);
-						else Message.addMessage("err","Stammdaten Fehler","Stammdaten Fehler!");
-					}
+					$scope.user.userPic = _URL + '/img/cache/customer' + Settings.getCustomerID() + '/' + data.teilnehmer.bild_id + '.jpg?v=' + Math.floor((Math.random()*10)+1) + '&sk=' + Auth.sessionKey;
+					/*
+					$.get($scope.user.userPic, function(data) {
+						alert('image request result: ' + data);
+					});*/
 				}
-			} else {
-				Message.addMessage("err","Stammdaten Fehler","Stammdaten leer.");
+				$scope.$apply();
 			}
-			$.mobile.loading('hide');
-		}, function(data) {
-			$.mobile.loading('hide');
 		});
 	};
 	
@@ -2608,27 +2530,18 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 		$(btn).removeClass("ui-btn-active");
 		//console.log(btn);
 		$("#fotoSelect").popup("close");
-		$.mobile.loading('show');
 		Teilnehmer.deleteFoto(function(data) {
 			// success handler
 			//console.log(data);
-			if(data != "") {
-				if(data.fehler == 0) {
-					// success in removing image
-					//var img = document.getElementById('profile-pic');
-					if($scope.user.gender == 1) {
-						$scope.user.userPic = "css/images/schoolgirl.png";
-					} else {
-						$scope.user.userPic = "css/images/schoolboy.png";
-					}
-					$scope.$apply();
-					//alert(data.message);
-				} else {
-					// server side fehler
-					Message.addMessage("err","Stammdaten Fehler", data.fehlermessage);
-				}
+			// success in removing image
+			//var img = document.getElementById('profile-pic');
+			if($scope.user.gender == 1) {
+				$scope.user.userPic = "css/images/schoolgirl.png";
+			} else {
+				$scope.user.userPic = "css/images/schoolboy.png";
 			}
-			$.mobile.loading('hide');
+			$scope.$apply();
+			//alert(data.message);
 		});
 	};
 	
@@ -2661,7 +2574,6 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 				$("a#fotolib").removeClass("ui-btn-active");
 				break;
 			}
-			$.mobile.loading('show');
 			var dialog = navigator.camera.getPicture(function(imageURI) {
 				// success handler
 				var options = new FileUploadOptions();
@@ -2673,18 +2585,17 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 				options.mimeType = "image/jpeg";
 				options.chunkedMode = false; 
 				var ft = new FileTransfer();
+				$.mobile.loading('show');
 				ft.upload(imageURI, encodeURI(_URL + "/index.php?act=profile&do=upload"), function(response) {
 					var result = angular.fromJson(response.response);
 					if(result.fehler != 0) {
 						//alert(result.fehlermessage);
-						$.mobile.loading('hide');
 						Message.addMessage("err","Stammdaten Fehler", result.fehlermessage);
 					} else {
 						var img = document.getElementById('profile-pic');
 						var isDefault = img.src.lastIndexOf('school');
 						if(isDefault > 0) {
 							// we need to make a full refresh to get bild_id
-							$.mobile.loading('hide');
 							$scope.loadProfile();
 						} else {
 							// we have an id and it is possible to refresh only image src
@@ -2698,9 +2609,9 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 							img.src = newImgSrc;
 							$scope.user.userPic = newImgSrc;
 							$scope.$apply();
-							$.mobile.loading('hide');
 						}
 					}
+					$.mobile.loading('hide');
 				}, function(error) {
 					var message = "";
 					switch(error.code) {
@@ -2812,7 +2723,6 @@ function KontoCtrl($scope, Navigation, Auth, Settings, Datasource) {
 	$scope.isLoaded = false;
 	
 	$scope.init = function() {
-		$.mobile.loading('show');
 		//console.log('KontoCtrl.init');
 		var sDate = new Date();
 		sDate.setDate(1);
@@ -2873,37 +2783,7 @@ function KontoCtrl($scope, Navigation, Auth, Settings, Datasource) {
 		Datasource.request('konto', params, function(data) {
 			//console.log("details received");
 			$scope.debug = "details received";
-			if(data.fehler) {
-				// server error
-				//console.log("server error received");
-				$scope.debug = "server error received: " + angular.toJson(data);
-				//console.log(data);
-				if(data.fehler == "-2") {
-					//console.log("auth error");
-					if(Auth.saved) {
-						Auth.login(Auth.cred, function() {
-							// success handler
-							Auth.save();
-							//console.log('Auth success. Trying to reload.');
-							$scope.load();
-						}, function() {
-							// error handler
-							Auth.clear();
-							//console.log('Auth fail. redirecting to login page...');
-							Navigation.go("login");
-							//$location.url("/login");
-							$scope.$apply();
-						});
-					} else {
-						Auth.clear();
-						Navigation.go("login");
-						//$location.path('/login');
-						$scope.$apply();
-					}
-				} else {
-					Messages.addMessage("err", "Kontoauszug Fehler", data.fehlermessage);
-				}
-			} else if (data) {
+			if (data) {
 				// data handling
 				//console.log("new konto data received.");
 				//console.log(data);
@@ -2930,7 +2810,6 @@ function KontoCtrl($scope, Navigation, Auth, Settings, Datasource) {
 				$scope.$apply();
 				//console.log($scope.buchungen);
 				$("a#load").removeClass("ui-btn-active");
-				$.mobile.loading('hide');
 			}
 		});
 	};
@@ -2971,12 +2850,6 @@ function KurseCtrl($scope, Navigation, Auth, Kurse) {
 			}
 			$scope.init();
 		}
-		/*
-		$scope.timeoutId = setTimeout(function() {
-			var t = ;
-			console.log(t.attr('class'));
-			t.;
-		}, 0);*/
 	};
 	
 	// courses list
@@ -2985,7 +2858,6 @@ function KurseCtrl($scope, Navigation, Auth, Kurse) {
 	// return to start page
 	$scope.start = function() {
 		Navigation.go("start");
-		//$location.path("/start");
 	};
 	
 	// go to Kurse detail page
@@ -2996,29 +2868,7 @@ function KurseCtrl($scope, Navigation, Auth, Kurse) {
 	$scope.errorHandler = function() {
 		if(Kurse.errorFlag) {
 			//console.log("error handler ",Kurse.errorCode);
-			if(Kurse.errorCode == -2) {
-				//console.log("auth error");
-				if(Auth.saved) {
-					Auth.login(Auth.cred, function() {
-						// success handler
-						Auth.save();
-						$scope.init();
-					}, function() {
-						// error handler
-						Auth.clear();
-						Navigation.go("login");
-						//$location.path("/login");
-						$scope.$apply();
-					});
-				} else {
-					Auth.clear();
-					Navigation.go("login");
-					//$location.path('/login');
-					$scope.$apply();
-				}
-			} else {
-				$scope.errorMsg = Kurse.fehlerMessage;
-			}
+			$scope.errorMsg = Kurse.fehlerMessage;
 		}
 	};
 	
@@ -3135,29 +2985,7 @@ function KurseDetailCtrl($scope, Navigation, Auth, Kurse, $routeParams) {
 	
 	$scope.errorHandler = function() {
 		if(Kurse.errorFlag) {
-			if(Kurse.errorCode == -2) {
-				//console.log("auth error");
-				if(Auth.saved) {
-					Auth.login(Auth.cred, function() {
-						// success handler
-						Auth.save();
-						$scope.init();
-					}, function() {
-						// error handler
-						Auth.clear();
-						Navigation.go("login");
-						//$location.url("/login");
-						$scope.$apply();
-					});
-				} else {
-					Auth.clear();
-					Navigation.go("login");
-					//$location.path('/login');
-					$scope.$apply();
-				}
-			} else {
-				$scope.errorMsg = Kurse.fehlerMessage;
-			}
+			$scope.errorMsg = Kurse.fehlerMessage;
 			Kurse.clear();
 		}
 	};
@@ -3211,7 +3039,7 @@ function MessageCtrl($scope, Navigation, Messages, Auth) {
 	$scope.actionType = Messages.actionType;
 	$scope.action = function() {
 		Messages.messages = [];
-		Messages.actionHandler();
+		Navigation.goBack();
 	}
 	$scope.restart = function() {
 		Messages.messages = [];
@@ -3250,15 +3078,6 @@ function parseDate(ds) { // input - datum field from DB (string)
 	var res = '' + da[2] + '-' + da[1] + '-' + da[0];
 	//console.log("parsed date: ", res);
 	return res;
-}
-
-function showError(text) {
-	$("#popup #popupText").html(text);
-	$("#popup").popup("open");	
-}
-
-function hideError() {
-	$("#popup").popup("close");
 }
 
 function setCookie(name, value, expires, path, domain, secure) {
