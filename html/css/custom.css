@@ -152,7 +152,12 @@ div.emptyDay {
     position: absolute;
     top: 0.7em;
 }
-#message .ui-li-thumb, #kursePage .ui-li-thumb {
+#message .ui-li-thumb {
+	left: 1em;
+	position: absolute;
+	top: 1em;
+}
+#kursePage .ui-li-thumb {
     left: 1em;
     position: absolute;
     top: -1px;
