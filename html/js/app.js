@@ -165,8 +165,8 @@ var ppitapp = angular.module('ppitapp', ['ngResource', 'ngSanitize']).config(
  * Application settings storage
  * and start page helper
  */
-var SettingsSvc = ppitapp.factory('Settings', ['Navigation', '$rootScope', '$window',
-                             function(Navigation, $rootScope, $window) {
+var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope', '$window',
+                             function(Navigation, Auth, $rootScope, $window) {
 	var Settings = {};
 	// customer id is hardcoded now - will be upgraded to real values
 	// in later versions
@@ -196,13 +196,15 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', '$rootScope', '$win
 			if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
 				//console.log("timeout!");
 				//alert("Settings.resumeHandler: timeout expired");
-				var p = Navigation.current.page;
-				var currentPage = angular.isDefined(p)? p : "";
-				var startPage = Settings.getStart();
-				if(currentPage != startPage) {
-					Navigation.go(startPage);
-					$rootScope.$apply();
-				}
+				Auth.relogin(function() {
+					var p = Navigation.current.page;
+					var currentPage = angular.isDefined(p)? p : "";
+					var startPage = Settings.getStart();
+					if(currentPage != startPage) {
+						Navigation.go(startPage);
+						$rootScope.$apply();
+					}
+				});
 			}
 		}, 0);
 	};
@@ -253,7 +255,7 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', '$rootScope', '$win
 	Settings.ls = window.localStorage;
 	if (!Settings.ls) {
 		//console.log('Settings service: local storage not available.');
-		showError("Achtung: lokale Speicherung ist nicht verfügbar!");
+		//showError("Achtung: lokale Speicherung ist nicht verfügbar!");
 	}
 	
 	// internal saving/loading functions
@@ -753,13 +755,23 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 				AuthService.reloginInPorgress = true;
 				// try to login
 				AuthService.login(cred, function(data) {
-					AuthService.reloginInPorgress = false;
 					AuthService.save(cred);
+					if(angular.isDefined(AuthService.reloginCallers)) {
+						while (AuthService.reloginCallers.length) {
+							// get handler
+							var o = AuthService.reloginCallers.shift();
+							// run it with set of parameters as array
+							o.f.apply(this, o.p);
+						}
+					}
 					//if(angular.isDefined(callerFunc)) callerFunc.apply(this, callerParams);
+					/*
 					angular.forEach(AuthService.reloginCallers, function(callerObject) {
 						callerObject.f.apply(this, callerObject.p);
 					});
 					AuthService.reloginCallers = [];
+					*/
+					AuthService.reloginInPorgress = false;
 				}, function(data) {
 					AuthService.reloginInPorgress = false;
 					AuthService.reloginCallers = [];
@@ -1739,7 +1751,7 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 			paramTeil = "";
 		}
 		return url + paramTeil;
-	}
+	};
 	// main navigation function
 	Nav.go = function(page, params, isBack) {
 		var isMsg = Messages.messages.length > 0;
@@ -2431,6 +2443,8 @@ function AuthCtrl($scope, Navigation, Auth, Settings) {
 			}
 			*/
 			$scope.$apply();
+		}, function() {
+			Navigation.go("error");
 		});
 	};
 	
