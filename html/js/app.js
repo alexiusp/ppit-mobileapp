@@ -271,7 +271,7 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 }]);
 
 /* db/server requests handling service */
-var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', function($http, Messages, Auth) {
+var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Navigation', 'Auth', function($http, Messages, Navigation, Auth) {
 	var DS = {};
 	DS.serverURL = _URL + '/index.php';
 	DS.resource = {
@@ -442,6 +442,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Auth', 
 		} else {
 			Messages.addMessage("wait", "Verbindungsfehler", "App kann nicht mit " + _URL + " verbunden werden. Bitte überprüfen Sie Ihre Internetverbindung.");
 		}
+		Navigation.go("error");
 	};
 	return DS;
 }]);
@@ -483,12 +484,19 @@ var MessagesSvc = ppitapp.factory('Messages', [function() {
 		M.actionHandler = handler;
 	};
 	M.addMessage = function(type, title, text) {
-		var msg = angular.copy(M.baseMessages[type]);
-		msg.id = M.messages.length;
-		if(angular.isDefined(title)) msg.title = title;
-		if(angular.isDefined(text)) msg.text = text;
-		M.messages.push(msg);
-		M.actionType = msg.action;
+		var alreadyErr = false;
+		angular.forEach(M.messages, function(mItem) {
+			if(mItem.type == type) alreadyErr = true;
+		});
+		if(!(type == 'wait' && alreadyErr)) {
+			var msg = angular.copy(M.baseMessages[type]);
+			msg.id = M.messages.length;
+			msg.type = type;
+			if(angular.isDefined(title)) msg.title = title;
+			if(angular.isDefined(text)) msg.text = text;
+			M.messages.push(msg);
+			M.actionType = msg.action;
+		}
 	};
 	M.clear = function() {
 		M.messages = [];
@@ -553,6 +561,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 			} else {
 				Messages.addMessage("wait", "Verbindungsfehler", "App kann nicht mit " + _URL + " verbunden werden. Bitte überprüfen Sie Ihre Internetverbindung.");
 			}
+			Navigation.go("error");
 			if(failHandler) failHandler(data);
 		});
 	};
@@ -776,7 +785,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 					AuthService.reloginInPorgress = false;
 					AuthService.reloginCallers = [];
 					AuthService.clear();
-					Navigation.go("login");
+					Navigation.go("error");
 				});
 			} else {
 				AuthService.reloginCallers = [];
@@ -1929,7 +1938,8 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			$scope.$apply();
 		}, function(data) {
 			// error
-			console.log("error: ", data.fehler);
+			console.log("error: ", data);
+			Navigation.go("error");
 		});
 		// properties init
 		var wShift = parseInt($routeParams.Shift);
@@ -2052,7 +2062,8 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			}
 		} else if(errCode == 2) { // database server error
 			//console.log("KalenderCtrl2.errorHandler server error redirect");
-			showError("Authorization expired. Reconnecting...");
+			//showError("Authorization expired. Reconnecting...");
+			//Navigation.go("error");
 			Navigation.go('kalend',{shift: $scope.shift});
 			//var reloadUrl = $scope.aktUrl.slice(0,-1) + $scope.shift;
 			//$location.path(reloadUrl);
@@ -2060,10 +2071,11 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			//$scope.timeoutId = setTimeout($scope.redirectUrl(reloadUrl), 1000);
 		} else {
 			//console.log("KalenderCtrl2.errorHandler unknown error.");
-			showError("Database error. Call People & Projects IT for answers.");
+			//showError("Database error. Call People & Projects IT for answers.");
+			Navigation.go("error");
 			Kalend2.needRefresh = true;
-			$scope.dataReady = false;
-			$scope.timeoutId = window.setTimeout($scope.init, 10000);
+			//$scope.dataReady = false;
+			//$scope.timeoutId = window.setTimeout($scope.init, 10000);
 		}
 		//$.mobile.loading('hide');
 		//$scope.$apply();
