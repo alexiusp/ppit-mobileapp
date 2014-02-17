@@ -205,7 +205,7 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 		var d = new Date();
 		if(d.getTime() - Settings.getSleepTime() > Settings.sleepDuration) {
 			//console.log("timeout!");
-			alert("Settings.resumeHandler: timeout expired");
+			//alert("Settings.resumeHandler: timeout expired");
 			Auth.relogin(function() {
 				/*
 				var p = Navigation.current.page;
@@ -216,20 +216,20 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 					$rootScope.$apply();
 				}
 				*/
-				alert("relogin success");
+				//alert("relogin success");
 				var startPage = Settings.getStart();
 				Navigation.go(startPage);
 				$rootScope.$apply();
 			});
 			return true;
 		} else {
-			alert("no timeout");
+			//alert("no timeout");
 			return false;
 		}
 	};
 	// resume handler
 	Settings.resumeHandler = function() {
-		alert("Settings.resumeHandler!");
+		//alert("Settings.resumeHandler!");
 		if(_PLATFORM == "ios") {
 			$window.setTimeout(function() { // iOS wrapper
 				Settings.realResumeHandler();
