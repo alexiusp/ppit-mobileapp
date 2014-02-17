@@ -192,34 +192,41 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 		}
 	};
 	
-	// resume handler
-	Settings.resumeHandler = function() {
-		$window.setTimeout(function() { // iOS wrapper
-			//console.log("Settings.resumeHandler");
-			alert("Settings.resumeHandler!");
-			var d = new Date();
-			if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
-				//console.log("timeout!");
-				alert("Settings.resumeHandler: timeout expired");
-				Auth.relogin(function() {
-					/*
-					var p = Navigation.current.page;
-					var currentPage = angular.isDefined(p)? p : "";
-					var startPage = Settings.getStart();
-					if(currentPage != startPage) {
-						Navigation.go(startPage);
-						$rootScope.$apply();
-					}
-					*/
-					alert("relogin success");
-					var startPage = Settings.getStart();
+	Settings.realResumeHandler = function() {
+		//console.log("Settings.resumeHandler");
+		alert("Settings.resumeHandler!");
+		var d = new Date();
+		if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
+			//console.log("timeout!");
+			alert("Settings.resumeHandler: timeout expired");
+			Auth.relogin(function() {
+				/*
+				var p = Navigation.current.page;
+				var currentPage = angular.isDefined(p)? p : "";
+				var startPage = Settings.getStart();
+				if(currentPage != startPage) {
 					Navigation.go(startPage);
 					$rootScope.$apply();
-				});
-			} else {
-				alert("no timeout");
-			}
-		}, 0);
+				}
+				*/
+				alert("relogin success");
+				var startPage = Settings.getStart();
+				Navigation.go(startPage);
+				$rootScope.$apply();
+			});
+		} else {
+			alert("no timeout");
+		}
+	};
+	// resume handler
+	Settings.resumeHandler = function() {
+		if(_PLATFORM == "ios") {
+			$window.setTimeout(function() { // iOS wrapper
+				Settings.realResumeHandler();
+			}, 0);
+		} else {
+			Settings.realResumeHandler();
+		}
 	};
 
 	/*
