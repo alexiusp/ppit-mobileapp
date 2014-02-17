@@ -1,6 +1,6 @@
 'use strict';
-// version 1.2.2 code 458
-var _VERSION = 458;
+// version 1.3 code 459
+var _VERSION = 459;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
@@ -2256,7 +2256,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 	};
 	// returns image src for selected menue
 	$scope.getImageSrc = function(menue) {
-		var iSrc = (menue.bild_id == '' || menue.bild_id == undefined)? 'css/images/essen.png' : Auth.appUrl + '/img/cache/customer' + Settings.getCustomerID() + '/' + menue.bild_id + '.jpg?sk=' + Auth.sessionKey;
+		var iSrc = (menue.bild_id == '' || menue.bild_id == undefined)? 'css/images/essen.png' : _URL + '/img/cache/customer' + Settings.getCustomerID() + '/' + menue.bild_id + '.jpg?sk=' + Auth.sessionKey;
 		//console.log('image src:',iSrc);
 		return iSrc;
 	};
