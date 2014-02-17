@@ -180,12 +180,16 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 	Settings.sleepTimestamp = 0;
 	// sleep handler
 	Settings.sleepHandler = function() {
-		$window.setTimeout(function() { // iOS wrapper
-			//console.log("Settings.sleepHandler");
-			alert("sleep");
+		if(_PLATFORM == "ios") {
+			$window.setTimeout(function() { // iOS wrapper
+				//console.log("Settings.sleepHandler");
+				var d = new Date();
+				Settings.sleepTimestamp = d.getTime();
+			}, 0);
+		} else {
 			var d = new Date();
 			Settings.sleepTimestamp = d.getTime();
-		}, 0);
+		}
 	};
 	
 	// resume handler
@@ -195,7 +199,7 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 			alert("Settings.resumeHandler!");
 			var d = new Date();
 			if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
-				console.log("timeout!");
+				//console.log("timeout!");
 				alert("Settings.resumeHandler: timeout expired");
 				Auth.relogin(function() {
 					/*
@@ -212,6 +216,8 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 					Navigation.go(startPage);
 					$rootScope.$apply();
 				});
+			} else {
+				alert("no timeout");
 			}
 		}, 0);
 	};
@@ -1795,7 +1801,7 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 			newUrl = this.history.pop();
 		}
 		//console.log("Nav.goBack go: ", newUrl);
-		alert("Nav.goBack "+newUrl.page);
+		//alert("Nav.goBack "+newUrl.page);
 		this.go(newUrl.page, newUrl.params, true);
 	};
 	// hardware back button functionality
