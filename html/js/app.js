@@ -167,6 +167,7 @@ var ppitapp = angular.module('ppitapp', ['ngResource', 'ngSanitize']).config(
  */
 var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope', '$window',
                              function(Navigation, Auth, $rootScope, $window) {
+	console.log("Settings service start");
 	var Settings = {};
 	// customer id is hardcoded now - will be upgraded to real values
 	// in later versions
@@ -178,25 +179,31 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 	Settings.sleepDuration = 60000;
 	// current sleep timestamp
 	Settings.sleepTimestamp = 0;
+	Settings.getSleepTime = function() {
+		var sleep = Settings.load("sleep");
+		var d = new Date();
+		if(sleep === null) sleep = d.getTime();
+		return sleep;
+	};
+	Settings.setSleepTime = function() {
+		var d = new Date();
+		Settings.save("sleep", d.getTime());
+	};
 	// sleep handler
 	Settings.sleepHandler = function() {
 		if(_PLATFORM == "ios") {
 			$window.setTimeout(function() { // iOS wrapper
-				//console.log("Settings.sleepHandler");
-				var d = new Date();
-				Settings.sleepTimestamp = d.getTime();
+				Settings.setSleepTime();
 			}, 0);
 		} else {
-			var d = new Date();
-			Settings.sleepTimestamp = d.getTime();
+			Settings.setSleepTime();
 		}
 	};
 	
 	Settings.realResumeHandler = function() {
 		//console.log("Settings.resumeHandler");
-		alert("Settings.resumeHandler!");
 		var d = new Date();
-		if(d.getTime() - Settings.sleepTimestamp > Settings.sleepDuration) {
+		if(d.getTime() - Settings.getSleepTime() > Settings.sleepDuration) {
 			//console.log("timeout!");
 			alert("Settings.resumeHandler: timeout expired");
 			Auth.relogin(function() {
@@ -214,12 +221,15 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 				Navigation.go(startPage);
 				$rootScope.$apply();
 			});
+			return true;
 		} else {
 			alert("no timeout");
+			return false;
 		}
 	};
 	// resume handler
 	Settings.resumeHandler = function() {
+		alert("Settings.resumeHandler!");
 		if(_PLATFORM == "ios") {
 			$window.setTimeout(function() { // iOS wrapper
 				Settings.realResumeHandler();
@@ -471,6 +481,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Navigat
 
 /* Messages service - storage for error messages and news from server */
 var MessagesSvc = ppitapp.factory('Messages', [function() {
+	console.log("Messages service");
 	var M = {};
 	M.messages = [];
 	M.messageTypes = ["err", "wait", "info", "warnung"];
@@ -529,7 +540,7 @@ var MessagesSvc = ppitapp.factory('Messages', [function() {
 
 /* Auth service */
 var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', function($http, Messages, Navigation) {
-	//console.log('Auth service start');
+	console.log('Auth service start');
 	var AuthService = {};
 	// user credentials
 	AuthService.cred = {
@@ -1693,7 +1704,7 @@ var ProfileSvc = ppitapp.factory('Teilnehmer', ['Auth', 'Datasource', function(A
 
 /* Navigation service v.1.1 */
 var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$rootScope', 'Messages', function($location, $window, $rootScope, Messages) {
-	//console.log("Navigation service");
+	console.log("Navigation service");
 	var Nav = {};
 	// current page
 	Nav.current = undefined;
@@ -1763,6 +1774,7 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 				this.current = newPage;
 			}
 		}
+		$window.localStorage.setItem("nav.current", angular.toJson(this.current));
 	};
 	Nav.prepareUrl = function(page, params) {
 		// core page url selection
@@ -1788,7 +1800,7 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 		var isMsg = Messages.messages.length > 0;
 		var newUrl = Nav.prepareUrl(page, params);
 		if(!isBack && angular.isDefined(this.current)) this.history.push(angular.copy(this.current));
-		alert("Nav.go: " + isMsg);
+		//alert("Nav.go: " + isMsg);
 		if(!isBack && isMsg) {
 			var skippedPage = {"page": page, "params": params};
 			this.history.push(skippedPage);
@@ -1798,6 +1810,22 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 			//console.log("Nav.go result: ", newUrl);
 			$location.path(newUrl);
 		}
+	};
+	Nav.goCurrent = function() {
+		var p;
+		if(angular.isDefined(this.current)) {
+			p = this.current;
+		} else {
+			var c = $window.localStorage.getItem("nav.current");
+			if(c === null) {
+				p = {"page":"start"};
+			} else {
+				p = angular.fromJson(c);
+			}
+		}
+		var newUrl = Nav.prepareUrl(p.page, p.params);
+		console.log("goCurrent: ", newUrl);
+		$location.path(newUrl);
 	};
 	// "go back" function
 	Nav.goBack = function(hard) {
@@ -1969,6 +1997,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		var wShift = parseInt($routeParams.Shift);
 		$scope.shift = wShift;
 		$scope.type = $routeParams.Type;
+		Navigation.setCurrent({"page" : "kalend", "params" : { "type" : $scope.type, "shift" : wShift}});
 		//$scope.kalend = { 'tage' : [], 'details' : [] };
 		//$scope.dataReady = false;
 		$scope.selectedMenue = {};
@@ -1978,7 +2007,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		$scope.selectedMenue.selectedMenueDate = "";
 		$scope.selectedMenue.menueNachricht = "";
 		$scope.selectedMenue.selectedMenueClass = "menue-default";
-		$scope.appUrl = Auth.appUrl;
+		$scope.appUrl = Auth.serverURL;
 		// authorization check
 		Auth.load();
 		if (Auth.sessionKey) {
@@ -2436,10 +2465,10 @@ StartCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Kalend2', 'Kurse' ];
 
 /* Authorization controller */
 function AuthCtrl($scope, Navigation, Auth, Settings) {
-	//console.log('AuthCtrl');
+	console.log('AuthCtrl');
 	//console.log('version: ', Auth.version);
 	$scope.ctrlName = "AuthCtrl";
-	Navigation.setCurrent({"page" : "login"});
+	
 	$scope.debug = false;
 	$scope.cred = {
 		username : "",
@@ -2487,10 +2516,12 @@ function AuthCtrl($scope, Navigation, Auth, Settings) {
 	Auth.load();
 	$scope.userStart = Settings.getStart();
 	if (Auth.sessionKey) {
-		console.log("AuthCtrl.userStart: ", $scope.userStart);
-		Navigation.go($scope.userStart);
+		//console.log("AuthCtrl.userStart: ", $scope.userStart);
+		console.log("AuthCtrl try to resume");
+		if(!Settings.realResumeHandler()) Navigation.goCurrent();
 	} else {
 		$scope.reset();
+		Navigation.setCurrent({"page" : "login"});
 	}
 }
 AuthCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Settings' ];
@@ -2776,6 +2807,7 @@ function ProfileCtrl(Teilnehmer, $scope, Navigation, Auth, Settings, Messages) {
 		$scope.photoEditable = (angular.isDefined(Auth.rights) && angular.isDefined(Auth.rights.profilfoto_aendern))? Auth.rights.profilfoto_aendern == 1 : false;
 		//console.log("ProfileCtrl: ", $scope.startSeite);
 		$scope.loadProfile();
+		Navigation.setCurrent({"page" : "profile"});
 	} else {
 		Navigation.go("login");
 		//$location.url("/login");
@@ -2899,6 +2931,7 @@ function KontoCtrl($scope, Navigation, Auth, Settings, Datasource) {
 	if (Auth.loggedIn()) {
 		// main code here
 		$scope.init();
+		Navigation.setCurrent({"page" : "konto"});
 	} else {
 		Navigation.go("login");
 		//$location.url("/login");
@@ -2982,6 +3015,7 @@ function KurseCtrl($scope, Navigation, Auth, Kurse) {
 			$("a#kurse_index").addClass("ui-btn-active");
 		}
 		$scope.init();
+		Navigation.setCurrent({"page" : "kurse"});
 	} else {
 		Navigation.go("login");
 		//$location.url("/login");
@@ -3076,6 +3110,7 @@ function KurseDetailCtrl($scope, Navigation, Auth, Kurse, $routeParams) {
 		$scope.errorMsg = "";
 		Kurse.registerHandler($scope.errorHandler);
 		var kursId = $routeParams.kursId;
+		Navigation.setCurrent({"page" : "kursedetail", "params" : { "kursId" : kursId}});
 		$scope.kursId = kursId;
 		//console.log(kursId);
 		var kursData = Kurse.getKurs(kursId);
