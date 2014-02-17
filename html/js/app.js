@@ -182,11 +182,12 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 	Settings.sleepHandler = function() {
 		$window.setTimeout(function() { // iOS wrapper
 			//console.log("Settings.sleepHandler");
+			alert("sleep");
 			var d = new Date();
 			Settings.sleepTimestamp = d.getTime();
 		}, 0);
 	};
-	$window.document.addEventListener("pause", Settings.sleepHandler, false);
+	
 	// resume handler
 	Settings.resumeHandler = function() {
 		$window.setTimeout(function() { // iOS wrapper
@@ -214,7 +215,6 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 			}
 		}, 0);
 	};
-	$window.document.addEventListener("resume", Settings.resumeHandler, false);
 
 	/*
 	 * Current date saving/loading functions
@@ -272,7 +272,10 @@ var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope
 	Settings.load = function(k) {
 		return Settings.ls.getItem(k);
 	};
-	
+	$window.document.addEventListener("deviceready", function() {
+		$window.document.addEventListener("pause", Settings.sleepHandler, false);
+		$window.document.addEventListener("resume", Settings.resumeHandler, false);
+	}, false);
 	return Settings;
 }]);
 
@@ -1792,6 +1795,7 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 			newUrl = this.history.pop();
 		}
 		//console.log("Nav.goBack go: ", newUrl);
+		alert("Nav.goBack "+newUrl.page);
 		this.go(newUrl.page, newUrl.params, true);
 	};
 	// hardware back button functionality
