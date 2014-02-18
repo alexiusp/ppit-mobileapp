@@ -4,9 +4,9 @@ var _VERSION = 459;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
-//var _URL = "https://m.people-projects-it.com";
+var _URL = "https://m.people-projects-it.com";
 //var _URL = "https://m.ber.menuplus.de";
-var _URL = "https://m-proxy.people-projects-it.com";
+//var _URL = "https://m-proxy.people-projects-it.com";
 //var _URL = "https://10.21.0.11";
 /**
  * german localization
@@ -167,7 +167,7 @@ var ppitapp = angular.module('ppitapp', ['ngResource', 'ngSanitize']).config(
  */
 var SettingsSvc = ppitapp.factory('Settings', ['Navigation', 'Auth', '$rootScope', '$window',
                              function(Navigation, Auth, $rootScope, $window) {
-	console.log("Settings service start");
+	//console.log("Settings service start");
 	var Settings = {};
 	// customer id is hardcoded now - will be upgraded to real values
 	// in later versions
@@ -481,7 +481,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Navigat
 
 /* Messages service - storage for error messages and news from server */
 var MessagesSvc = ppitapp.factory('Messages', [function() {
-	console.log("Messages service");
+	//console.log("Messages service");
 	var M = {};
 	M.messages = [];
 	M.messageTypes = ["err", "wait", "info", "warnung"];
@@ -540,7 +540,7 @@ var MessagesSvc = ppitapp.factory('Messages', [function() {
 
 /* Auth service */
 var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', function($http, Messages, Navigation) {
-	console.log('Auth service start');
+	//console.log('Auth service start');
 	var AuthService = {};
 	// user credentials
 	AuthService.cred = {
@@ -572,7 +572,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 			$.mobile.loading('hide');
 			if(angular.isDefined(data)) {
 				if(angular.isDefined(data.fehler) && data.fehler != 0) {
-					console.log("Fehler: ", data);
+					//console.log("Fehler: ", data);
 					if(angular.isDefined(data.fehlermessage)) {
 						Messages.addMessage("err", "Fehler", data.fehlermessage);
 					} else {
@@ -728,7 +728,7 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 	
 	// logout function
 	AuthService.logout = function(redirectFunc) {
-		console.log("AuthService.logout");
+		//console.log("AuthService.logout");
 		var params = {"sk":AuthService.sessionKey};
 		// compile url
 		var url = AuthService.serverURL;
@@ -1331,7 +1331,7 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 			}, function(data) {
 				// error connecting to server
 				Kurse.raiseError(-1, "Error connecting to the server!");
-				console.log(data);
+				//console.log(data);
 			});
 			
 			/*
@@ -1385,7 +1385,7 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 			}, function(data) {
 				// error connecting to server
 				Kurse.raiseError(-1, "Error connecting to the server!");
-				console.log(data);
+				//console.log(data);
 			});
 		} else {
 			if(handler) handler(Kurse.meineKurse);
@@ -1448,7 +1448,7 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 		}, function(data) {
 			// error connecting to server
 			Kurse.raiseError(-1, "Error connecting to the server!");
-			console.log(data);
+			//console.log(data);
 		});
 	};
 	
@@ -1461,8 +1461,8 @@ var KurseSvc = ppitapp.factory('Kurse', ['Auth', 'Datasource', function(Auth, Da
 		Kurse.errorCode = code;
 		Kurse.fehlerMessage = text;
 		Kurse.errorFlag = true;
-		console.log("Fehler code: ", code);
-		console.log("Fehler: ", text);
+		//console.log("Fehler code: ", code);
+		//console.log("Fehler: ", text);
 		if(Kurse.errorHandler) Kurse.errorHandler();
 	};
 	
@@ -1704,7 +1704,7 @@ var ProfileSvc = ppitapp.factory('Teilnehmer', ['Auth', 'Datasource', function(A
 
 /* Navigation service v.1.1 */
 var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$rootScope', 'Messages', function($location, $window, $rootScope, Messages) {
-	console.log("Navigation service");
+	//console.log("Navigation service");
 	var Nav = {};
 	// current page
 	Nav.current = undefined;
@@ -1824,7 +1824,7 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 			}
 		}
 		var newUrl = Nav.prepareUrl(p.page, p.params);
-		console.log("goCurrent: ", newUrl);
+		//console.log("goCurrent: ", newUrl);
 		$location.path(newUrl);
 	};
 	// "go back" function
@@ -1894,7 +1894,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			"zusatzstoffe" : []
 	};
 	// base url for external images
-	$scope.appUrl = Auth.appUrl;
+	//$scope.appUrl = Auth.appUrl;
 	// urls for navigation buttons - deprecated
 	//$scope.prevUrl = $scope.nextUrl = $scope.aktUrl = "/kalend";
 	// selected date wich should be saved for further use
@@ -1990,7 +1990,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			$scope.$apply();
 		}, function(data) {
 			// error
-			console.log("error: ", data);
+			//console.log("error: ", data);
 			Navigation.go("error");
 		});
 		// properties init
@@ -2007,7 +2007,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		$scope.selectedMenue.selectedMenueDate = "";
 		$scope.selectedMenue.menueNachricht = "";
 		$scope.selectedMenue.selectedMenueClass = "menue-default";
-		$scope.appUrl = Auth.serverURL;
+		//$scope.appUrl = Auth.serverURL;
 		// authorization check
 		Auth.load();
 		if (Auth.sessionKey) {
@@ -2351,7 +2351,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			if(angular.isDefined(data.fehler) && data.fehler != 0) {
 				//Kalender.clearCache();
 				$("#postResult").html(data.fehlermessage);
-				console.log('error: ', data.fehlermessage);
+				//console.log('error: ', data.fehlermessage);
 			} else {
 				// success
 				$("#menuePopup").popup("close");
@@ -2465,7 +2465,7 @@ StartCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Kalend2', 'Kurse' ];
 
 /* Authorization controller */
 function AuthCtrl($scope, Navigation, Auth, Settings) {
-	console.log('AuthCtrl');
+	//console.log('AuthCtrl');
 	//console.log('version: ', Auth.version);
 	$scope.ctrlName = "AuthCtrl";
 	
@@ -2495,7 +2495,7 @@ function AuthCtrl($scope, Navigation, Auth, Settings) {
 		$scope.cred = angular.copy($scope.user);
 		Auth.remember = $scope.remember;
 		Auth.login($scope.cred, function(data) {
-			console.log('AuthCtrl success login');
+			//console.log('AuthCtrl success login');
 			Navigation.go($scope.userStart);
 			/*
 			if(angular.isDefined(data.nachrichten)) {
@@ -2517,7 +2517,7 @@ function AuthCtrl($scope, Navigation, Auth, Settings) {
 	$scope.userStart = Settings.getStart();
 	if (Auth.sessionKey) {
 		//console.log("AuthCtrl.userStart: ", $scope.userStart);
-		console.log("AuthCtrl try to resume");
+		//console.log("AuthCtrl try to resume");
 		if(!Settings.realResumeHandler()) Navigation.goCurrent();
 	} else {
 		$scope.reset();
