@@ -1895,6 +1895,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 	};
 	// base url for external images
 	//$scope.appUrl = Auth.appUrl;
+	$scope.appUrl = _URL;
 	// urls for navigation buttons - deprecated
 	//$scope.prevUrl = $scope.nextUrl = $scope.aktUrl = "/kalend";
 	// selected date wich should be saved for further use
