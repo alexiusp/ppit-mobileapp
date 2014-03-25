@@ -22,8 +22,11 @@
 				</span>
 			</li>
 		</ul>
-		<ul data-role="listview" data-theme="d" data-divider-theme="e"  data-count-theme="e" ng-show="vertretungen.length == 0" style="display: none;">
+		<ul data-role="listview" data-theme="d" data-divider-theme="e"  data-count-theme="e" ng-show="isLoaded && vertretungen.length == 0" style="display: none;">
 			<li data-role="list-divider">Alle Ihre Stunden und Veranstaltungen finden wie geplant statt.</li>
+		</ul>
+		<ul data-role="listview" data-theme="d" data-divider-theme="e"  data-count-theme="e" ng-hide="isLoaded">
+			<li data-role="list-divider">&nbsp;</li>
 		</ul>
 	</div>
 	<!-- /content -->

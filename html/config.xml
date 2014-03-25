@@ -13,15 +13,15 @@
 	</author>
 	<gap:platform name="android" />
 	<icon src="icon.png" />
-	<icon src="assets/android/icon-ldpi36.png" gap:platform="android" gap:density="ldpi" />
 	<icon src="assets/android/icon-mdpi48.png" gap:platform="android" gap:density="mdpi" />
 	<icon src="assets/icon-72.png" gap:platform="android" gap:density="hdpi" />
 	<icon src="assets/android/icon-xhdpi96.png" gap:platform="android" gap:density="xhdpi" />
+	<icon src="assets/ios/icon-ios144.png" gap:platform="android" gap:density="xxhdpi" />
+	<icon src="assets/android/icon-xxxhdpi192.png" gap:platform="android" gap:density="xxxhdpi" />
 	<gap:splash src="splash.png" />
 	<gap:splash src="assets/android/launchscreen-xhdpi.9.png" gap:platform="android" gap:density="xhdpi" />
 	<gap:splash src="assets/android/launchscreen-hdpi.9.png" gap:platform="android" gap:density="hdpi" />
 	<gap:splash src="assets/android/launchscreen-mdpi.9.png" gap:platform="android" gap:density="mdpi" />
-	<gap:splash src="assets/android/launchscreen-ldpi.9.png" gap:platform="android" gap:density="ldpi" />
 	<preference name="phonegap-version" value="2.9.0" />
 	<preference name="orientation" value="default" />
 	<preference name="target-device" value="universal" />
