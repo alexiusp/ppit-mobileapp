@@ -1,11 +1,11 @@
 'use strict';
-// version 1.3 code 460
-var _VERSION = 460;
+// version 1.4 code 461
+var _VERSION = 461;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
-//var _URL = "https://m.people-projects-it.com";
-var _URL = "https://m.ber.menuplus.de";
+var _URL = "https://m.people-projects-it.com";
+//var _URL = "https://m.ber.menuplus.de";
 //var _URL = "https://m-proxy.people-projects-it.com";
 //var _URL = "https://10.21.0.11";
 /**
@@ -103,7 +103,7 @@ angular.module("ngLocale", [], [
 		} ]);
 /**
  * The main ISS Mobile App app module.
- * (c) PPIT 2013
+ * (c) PPIT 2013-2014
  * 
  * @type {angular.Module}
  */
@@ -151,6 +151,16 @@ var ppitapp = angular.module('ppitapp', ['ngResource', 'ngSanitize']).config(
 				}
 			}).when('/error', {
 				templateUrl : 'error.html',
+				jqmOptions : {
+					transition : 'none'
+				}
+			}).when('/ppitkontakt', {
+				templateUrl : 'ppitkontakt.html',
+				jqmOptions : {
+					transition : 'none'
+				}
+			}).when('/vertretungsplan', {
+				templateUrl : 'vertretungsplan.html',
 				jqmOptions : {
 					transition : 'none'
 				}
@@ -396,6 +406,13 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Navigat
 					'sk'		: '@sk',
 					'sd'		: '@sd',
 					'ed'		: '@ed'
+				}
+			},
+			'vertretungsplan': {
+				method	: 'GET',
+				params	: {
+					'act'		: 'vertretungsplan',
+					'sk'		: '@sk'
 				}
 			}
 	};
@@ -644,6 +661,8 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 					AuthService.sessionKey = data.result.key;
 					AuthService.pages = data.pages;
 					AuthService.rights = data.rechte;
+					AuthService.kontakt = data.kontakt;
+					AuthService.anzahl_vertretungen = data.anzahl_vertretungen;
 					setCookie('sk',AuthService.sessionKey,null,'/');
 					AuthService.save(cred);
 					//document.cookie = "sk=" + AuthService.sessionKey;
@@ -690,6 +709,8 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 				ls.setItem("cred", angular.toJson(cred));
 			ls.setItem("pages", angular.toJson(AuthService.pages));
 			ls.setItem("rights", angular.toJson(AuthService.rights));
+			ls.setItem("kontakt", angular.toJson(AuthService.kontakt));
+			ls.setItem("anzahl_vertretungen", angular.toJson(AuthService.anzahl_vertretungen));
 			ls.setItem("sk", AuthService.sessionKey);
 			AuthService.saved = true;
 		} else {
@@ -707,6 +728,8 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 			AuthService.cred = angular.fromJson(ls.getItem("cred"));
 			AuthService.pages = angular.fromJson(ls.getItem("pages"));
 			AuthService.rights = angular.fromJson(ls.getItem("rights"));
+			AuthService.kontakt = angular.fromJson(ls.getItem("kontakt"));
+			AuthService.anzahl_vertretungen = angular.fromJson(ls.getItem("anzahl_vertretungen"));
 			//console.log('cred=', AuthService.cred);
 			AuthService.sessionKey = ls.getItem("sk");
 			//console.log('sk=', AuthService.sessionKey);
@@ -1074,6 +1097,30 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 					var newValue = angular.copy(value);
 					// format the date
 					newValue.datum = parseDate(value.datum);
+					// format dates in event array
+					var events = [];
+					if(angular.isDefined(value.events) && value.events.length > 0) {
+						angular.forEach(value.events, function(event) {
+							var pEvent = angular.copy(event);
+							pEvent.datum_von = parseFullDate(event.datum_von);
+							pEvent.datum_bis = parseFullDate(event.datum_bis);
+							var today = new Date(newValue.datum);
+							if(pEvent.datum_von.toDateString() == today.toDateString()) pEvent.showTime = true;
+							else pEvent.showTime = false;
+							events.push(pEvent);
+						});
+						newValue.events = events;
+					}
+					// format dates in vertretungen array
+					var v = [];
+					if(angular.isDefined(value.vertretungsplan) && value.vertretungsplan.length > 0) {
+						angular.forEach(value.vertretungsplan, function(item) {
+							var newV = angular.copy(item);
+							newV.datum = parseFullDate(item.datum_uhrzeit);
+							v.push(newV);
+						});
+						newValue.vertretungsplan = v;
+					}
 					this.push(newValue);
 				}, tageArray);
 				Kalender.tageRequestResult = tageArray;
@@ -1760,6 +1807,12 @@ var NavigationSvc = ppitapp.factory('Navigation', ['$location', '$window', '$roo
 		case "error":
 			url = '/error';
 			break;
+		case "ppitkontakt":
+			url = '/ppitkontakt';
+			break;
+		case "vertretungsplan":
+			url = '/vertretungsplan';
+			break;
 		default:
 			url = '/login';
 		}
@@ -2183,12 +2236,19 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		//$location.path("/start");
 	};
 	
+	// go to vertretungsplan page
+	$scope.vertretungsplan = function() {
+		Settings.setDate($scope.selectedDate);
+		window.clearTimeout($scope.timeoutId);
+		Navigation.go('vertretungsplan');
+	};
+	
 	// go to kurs details page
 	$scope.kurseDetails = function(id) {
 		Settings.setDate($scope.selectedDate);
 		window.clearTimeout($scope.timeoutId);
 		Navigation.go('kursedetail', {kursId : id});
-	}
+	};
 
 	/*
 	 * functions for template generation
@@ -2407,28 +2467,26 @@ function StartCtrl($scope, Navigation, Auth, Kalend2, Kurse) {
 	//console.log("StartCtrl");
 	$scope.goKonto = function() {
 		Navigation.go("konto");
-		//$location.path("/konto");
+	};
+
+	$scope.goVertretungsplan = function() {
+		Navigation.go("vertretungsplan");
+	};
+
+	$scope.goPpitKontakt = function() {
+		Navigation.go("ppitkontakt");
 	};
 
 	$scope.goProfile = function() {
 		Navigation.go("profile");
-		//$location.path("/profile");
 	};
 
 	$scope.goKurse = function() {
 		Navigation.go("kurse");
-		//$location.path("/kurse");
 	};
 
 	$scope.goKalender = function() {
-		/*
-		$location.routeOverride({
-			jqmOptions : {
-				transition : 'slidedown'
-			}
-		});*/
 		Navigation.go("kalend");
-		//$location.path("/kalenda/a/0");
 	};
 
 	$scope.logout = function() {
@@ -2456,6 +2514,7 @@ function StartCtrl($scope, Navigation, Auth, Kalend2, Kurse) {
 	Auth.load();
 	if (Auth.loggedIn()) {
 		$scope.pages = Auth.pages;
+		$scope.anzahl_vertretungen = Auth.anzahl_vertretungen;
 		Navigation.setCurrent({page: 'start'});
 	} else {
 		Navigation.go("login");
@@ -3170,6 +3229,112 @@ function MessageCtrl($scope, Navigation, Messages, Auth) {
 }
 MessageCtrl.$inject = [ '$scope', 'Navigation', 'Messages', 'Auth'];
 
+/* PPIT Kontakt controller */
+function PpitKontaktCtrl($scope, Navigation, Auth, Settings, Datasource) {
+	//console.log('PpitKontaktCtrl');
+	$scope.ctrlName = "PpitKontaktCtrl";
+	$scope.info = undefined;
+	// go to start page
+	$scope.start = function() {
+		Navigation.go("start");
+	};
+	$scope.click = function(btn) {
+		//var button = "a#" + btn;
+		//$(button).removeClass("ui-btn-active");
+		var buttons = $('a.ui-btn');
+		console.log('PpitKontaktCtrl.click', buttons);
+		buttons.removeClass("ui-btn-active");
+	};
+	$scope.init = function() {
+		//console.log('PpitKontaktCtrl.init');
+		$scope.info = Auth.kontakt;
+	};
+	Auth.load();
+	if (Auth.loggedIn()) {
+		// main code here
+		$scope.init();
+		Navigation.setCurrent({"page" : "ppitkontakt"});
+	} else {
+		Navigation.go("login");
+	}
+}
+PpitKontaktCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Settings', 'Datasource' ];
+
+/* PPIT Kontakt controller */
+function VertretungsplanCtrl($scope, Navigation, Auth, Settings, Datasource) {
+	//console.log('VertretungsplanCtrl');
+	$scope.ctrlName = "VertretungsplanCtrl";
+	$scope.vertretungen = new Array();
+	$scope.isLoaded = false;
+	// go to start page
+	$scope.start = function() {
+		Navigation.go("start");
+	};
+	// back button action
+	$scope.back = function() {
+		Navigation.goBack();
+	};
+	// parse Vertretung info
+	$scope.parse = function(item) {
+		var vertretungObject = {
+			"statusClass"	: "",
+			"statusImg"		: "",
+			"statusTitle"	: (item.vertretungsart.length > 10) ? item.vertretungsart.slice(0,6) + "..." : item.vertretungsart
+		};
+		switch(item.vertretungsart_id) {
+		case 2:
+			vertretungObject.statusImg = 'css/images/ribbon3-o.png';
+			vertretungObject.statusClass = 'orange';
+			break;
+		case 3:
+			vertretungObject.statusImg = 'css/images/ribbon3-g.png';
+			vertretungObject.statusClass = 'green';
+			break;
+		case 1:
+			vertretungObject.statusImg = 'css/images/ribbon3-r.png';
+			vertretungObject.statusClass = 'red';
+			break;
+		default:
+			vertretungObject.statusImg = 'css/images/ribbon3-r.png';
+			vertretungObject.statusClass = 'red';
+			break;
+		}
+		angular.extend(vertretungObject, item);
+		vertretungObject.datum = parseFullDate(item.datum_uhrzeit);
+		//console.log("datum:", d);
+		return vertretungObject;
+	};
+	$scope.init = function() {
+		//console.log('PpitKontaktCtrl.init');
+		$scope.isLoaded = false;
+		var params = {
+			'sk'	: Auth.sessionKey
+		};
+		Datasource.request('vertretungsplan', params, function(data) {
+			var parsedData = [];
+			angular.forEach(data.vertretungen, function(item) {
+				parsedData.push($scope.parse(item));
+			});
+			$scope.vertretungen = parsedData;
+			$scope.isLoaded = true;
+			//console.log("vertretungsplan:", parsedData);
+			$scope.$apply();
+		});
+	};
+	Auth.load();
+	if (Auth.loggedIn()) {
+		// main code here
+		$scope.init();
+		Navigation.setCurrent({"page" : "vertretungsplan"});
+	} else {
+		Navigation.go("login");
+	}
+}
+VertretungsplanCtrl.$inject = [ '$scope', 'Navigation', 'Auth', 'Settings', 'Datasource' ];
+
+/*
+ * custom function
+ */
 function formatDate(d) {
 	// format the date (Date() object) in dd.mm.yyyy format
 	//alert("input: " + d);
@@ -3201,6 +3366,16 @@ function parseDate(ds) { // input - datum field from DB (string)
 	return res;
 }
 
+function parseFullDate(dateString) {// input - datum field from DB (string) dd.mm.yyyy hh:mm
+	var dParsing = dateString.split(" ");
+	var datum = dParsing[0].split(".");
+	var uhrzeit = dParsing[1].split(":");
+	//console.log("date parse:", datum, uhrzeit);
+	var d = new Date();
+	d.setFullYear(datum[2], parseInt(datum[1],10) - 1, datum[0]);
+	d.setHours(uhrzeit[0], uhrzeit[1], 0, 0);
+	return d;
+}
 function setCookie(name, value, expires, path, domain, secure) {
 	//console.log('setCookie. path=' + path);
     if (!name || !value) return false;

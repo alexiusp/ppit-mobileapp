@@ -21,6 +21,12 @@
 		</div>
 		<div data-role="navbar" class="nav-glyphs">
 			<ul>
+				<li><a ng-class="buttonClass('vertretungsplan')" href="#" id="vertretungsplan" ng-click="goVertretungsplan()" data-icon="custom" data-theme="d">Vertretungsplan<span class="vertretungen_badge" ng-show="anzahl_vertretungen > 0">{{anzahl_vertretungen}}</span></a></li>
+				<li><a href="#" id="kontakt"  ng-click="goPpitKontakt()"  data-icon="custom" data-theme="d">Kontakt</a></li>
+			</ul>
+		</div>
+		<div data-role="navbar" class="nav-glyphs">
+			<ul>
 				<li><a href="#" id="logout" ng-click="logout()" data-icon="custom" data-theme="d">Abmelden</a></li>
 			</ul>
 		</div>

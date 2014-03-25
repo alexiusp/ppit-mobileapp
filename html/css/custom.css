@@ -44,9 +44,17 @@ div.emptyDay {
 	background-position: 50% 50%;
 	background-size: 32px 32px;
 }
+#vertretungsplan .ui-icon {
+	background-image: url('images/icons/icon-intersection.png');
+	background: url('images/icons/icon-intersection.png') no-repeat scroll 50% 50% / 32px 32px transparent;
+}
+#kontakt .ui-icon {
+	background-image: url('images/icons/icon-phone-call.png');
+	background: url('images/icons/icon-phone-call.png') no-repeat scroll 50% 50% / 32px 32px transparent;
+}
 #kalender .ui-icon {
 	background-image: url('images/icons/icon-calendar.png');
-    background: url('images/icons/icon-calendar.png') no-repeat scroll 50% 50% / 32px 32px transparent;
+	background: url('images/icons/icon-calendar.png') no-repeat scroll 50% 50% / 32px 32px transparent;
 }
 #kontoauszug .ui-icon {
 	background-image: url('images/icons/icon-piggybank.png');
@@ -125,10 +133,39 @@ div.emptyDay {
 	background: url('images/icons/white/icon-ok-circle.png') no-repeat scroll 50% 50% / 32px 32px transparent;
 }
 
+.phone .ui-icon {
+	background-image: url('images/icons/icon-phone-call.png');
+	background: url('images/icons/icon-phone-call.png') no-repeat scroll 50% 50% / 32px 32px transparent;
+}
+.email .ui-icon {
+	background-image: url('images/icons/icon-emailalt.png');
+	background: url('images/icons/icon-emailalt.png') no-repeat scroll 50% 50% / 32px 32px transparent;
+}
+
+.vertretungen_badge {
+	display: block;
+	position: absolute;
+	top: -24px;
+	right: 0;
+	z-index: 100;
+	color: #ff6666;
+	height: 24px;
+	margin-left: -12px;
+	width: 24px;
+	background-color: transparent;
+	background-repeat: no-repeat;
+	background-attachment: scroll;
+	background-position: 50% 50%;
+	background-size: 24px 24px;
+	background-image: url('images/icons/icon-comment.png');
+	background: url('images/icons/icon-comment.png') no-repeat scroll 50% 50% / 24px 24px transparent;
+	vertical-align: middle;
+}
+
 .termine {
 	padding-left: 20px;
 	line-height: 16px;
-    background-color: transparent;
+	background-color: transparent;
 	background-repeat: no-repeat;
 	background-attachment: scroll;
 	background-position: 0% 50%;
@@ -137,12 +174,17 @@ div.emptyDay {
 
 .time {
 	background-image: url('images/icons/icon-time.png');
-    background: url('images/icons/icon-time.png') no-repeat scroll 0% 50% / 16px 16px transparent;
+	background: url('images/icons/icon-time.png') no-repeat scroll 0% 50% / 16px 16px transparent;
 }
 
 .location {
 	background-image: url('images/icons/icon-intersection.png');
-    background: url('images/icons/icon-intersection.png') no-repeat scroll 0% 50% / 16px 16px transparent;
+	background: url('images/icons/icon-intersection.png') no-repeat scroll 0% 50% / 16px 16px transparent;
+}
+
+.person {
+	background-image: url('images/icons/icon-user.png');
+	background: url('images/icons/icon-user.png') no-repeat scroll 0% 50% / 16px 16px transparent;
 }
 
 .ui-li-thumb, .ui-listview .ui-li-icon {
@@ -229,7 +271,23 @@ h3.ui-li-aside {
 .ui-grid-a p.ui-li-desc {
 	margin: 0px;
 }
-
+.status-list-item {
+	padding: 0 !important;
+	min-height: 80px;
+	padding-left: 100px !important;
+}
+.list-item-description p {
+	margin: 0 !important;
+	margin-top: 0.5em !important;
+}
+.status-list-item img {
+	left: 1em;
+	position: absolute;
+	top: -1px;
+	max-width: 80px;
+	float: left;
+	margin-right: 10px;
+}
 .status {
 	position: absolute;
 	display: block;

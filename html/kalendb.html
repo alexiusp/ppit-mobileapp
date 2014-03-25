@@ -27,7 +27,7 @@
 						</span>
 					</span>
 					<span ngm-if="hasCourses(tag)"><img src="css/images/kurse.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
-					<span ngm-if="hasEvents(tag)"><img src="css/images/info.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
+					<span ngm-if="hasEvents(tag) || tag.vertretungsplan.length > 0"><img src="css/images/info.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
 					<span ngm-if="tag.ferientag == 1"><img src="css/images/ferien.png" width="16px" height="16px" style="float: right; margin-right: 6px" /></span>
 				</h3>
 				<div ngm-if="!isEmptyDay(tag)">
@@ -87,14 +87,30 @@
 					</div>
 				</div>
 				<div ngm-if="hasEvents(tag)">
-				<!-- <h4>Events</h4> -->
-				<ul data-role="listview" data-theme="d" data-divider-theme="e">
-					<li data-role="list-divider">Termine</li>
-					<li ng-repeat="event in tag.events">
-					<img class="menue-pic" ngm-if="event.bild_id != ''" align="left" alt="Event" ng-src="{{appUrl}}/img/{{event.bild_id}}.jpg?sk={{sessionKey}}">
-					{{event.beschreibung}}
-					</li>
-				</ul>
+					<!-- <h4>Events</h4> -->
+					<div class="ui-grid-solo detail-header" style="margin-top:10px;">
+						<div class="ui-block-a"><div class="ui-bar ui-bar-e">Termine</div></div>
+					</div>
+					<ul data-role="listview" data-theme="d" data-divider-theme="e">
+						<li ng-repeat="event in tag.events">
+							<img class="menue-pic" ngm-if="event.bild_id != ''" align="left" alt="Event" ng-src="{{appUrl}}/img/{{event.bild_id}}.jpg?sk={{sessionKey}}">
+							{{event.beschreibung}}
+							<p class="termine time" style="margin-top:0.5em;" ng-show="event.showTime">{{event.datum_von | date:'HH:mm'}}</p>
+						</li>
+					</ul>
+				</div>
+				<div ngm-if="tag.vertretungsplan.length > 0">
+					<div class="ui-grid-solo detail-header" style="margin-top:10px;">
+						<div class="ui-block-a"><div class="ui-bar ui-bar-e">Vertretungen</div></div>
+					</div>
+					<ul data-role="listview" data-theme="d" data-divider-theme="e">
+						<li ng-repeat="item in tag.vertretungsplan">
+							<a href="#" ng-click="vertretungsplan()">
+								<h5 class="termine time" style="margin-top:0.5em;">{{item.datum | date:'HH:mm'}} ({{item.vertretungsart}}):</h5>
+								<p style="margin-top:0.5em;">{{item.bemerkung}}</p>
+							</a>
+						</li>
+					</ul>
 				</div>
 				<div ngm-if="isEmptyDay(tag)" class="emptyDay">&nbsp;</div>
 			</div>
