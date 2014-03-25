@@ -2,8 +2,8 @@
 // version 1.4 code 461
 var _VERSION = 461;
 //var _PLATFORM = "debug";
-var _PLATFORM = "android";
-//var _PLATFORM = "ios";
+//var _PLATFORM = "android";
+var _PLATFORM = "ios";
 var _URL = "https://m.people-projects-it.com";
 //var _URL = "https://m.ber.menuplus.de";
 //var _URL = "https://m-proxy.people-projects-it.com";
@@ -3246,27 +3246,28 @@ function PpitKontaktCtrl($scope, Navigation, Auth, Settings, Datasource) {
 			$scope.timeoutId = window.setTimeout(function() {
 				window.clearTimeout($scope.timeoutId);
 				var buttons = $('a.ui-btn');
-				buttons.removeClass("ui-btn-active");
+				$(buttons).removeClass("ui-btn-active");
 				//console.log("href:", btn);
-				var r = window.confirm("href:" + btn);
-				/*if(_PLATFORM == "android") document.location.href = btn;
-				else window.location.href = btn;*/
-				window.location.href = btn;
+				//window.location.href = btn;
+				window.open(btn, '_system');
 			}, 10);
 		}
 	};
 	$scope.init = function() {
 		//console.log('PpitKontaktCtrl.init');
-		var kontaktInfo = Auth.kontakt;
-		if(angular.isDefined(kontaktInfo.ppit_telefon)) {
+		var kontaktInfo = {};
+		if(angular.isDefined(Auth.kontakt.ppit_telefon)) {
 			angular.forEach(Auth.kontakt, function(value, key) {
-				if(key.indexOf('mail') > -1) {
-					kontaktInfo[key] = 'mailto:' + value.trim();
-				}
-				if(key.indexOf('telefon') > -1) {
-					kontaktInfo[key] = 'tel:' + value.trim();
+				if(angular.isDefined(value) && value.length > 0) {
+					if(key.indexOf('mail') > -1) {
+						kontaktInfo[key] = 'mailto:' + value.trim();
+					}
+					if(key.indexOf('telefon') > -1) {
+						kontaktInfo[key] = 'tel:' + value.trim();
+					}
 				}
 			});
+			console.log(kontaktInfo);
 			$scope.info = kontaktInfo;
 			$scope.loaded = true;
 		}

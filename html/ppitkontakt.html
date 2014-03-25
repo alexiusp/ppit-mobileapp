@@ -8,22 +8,22 @@
 	</div>
 	<!-- /header -->
 	<div class="jqmpage" data-role="content" class="nav-glyphs">
-		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.ppit_telefon">
+		<div data-role="navbar" class="nav-glyphs" ng-show="info.ppit_telefon">
 			<ul>
-				<li><a href="tel:" target="_blank" id="ppit_telefon" class="phone" ng-href="{{info.ppit_telefon}}" ng-click="click(info.ppit_telefon)" data-icon="custom" data-theme="d">People & Projects anrufen</a></li>
+				<li><a href="tel:" target="_blank" id="ppit_telefon" class="phone" ng-href="{{info.ppit_telefon}}" ng-click="click(info.ppit_telefon)" data-icon="custom" data-theme="d">People &amp; Projects anrufen</a></li>
 			</ul>
 		</div>
-		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.ppit_mail">
+		<div data-role="navbar" class="nav-glyphs" ng-show="info.ppit_mail">
 			<ul>
-				<li><a href="mailto:" target="_blank" id="ppit_mail" class="email" ng-href="{{info.ppit_mail}}" ng-click="click(info.ppit_mail)" data-icon="custom" data-theme="d">People & Projects mailen</a></li>
+				<li><a href="mailto:" target="_blank" id="ppit_mail" class="email" ng-href="{{info.ppit_mail}}" ng-click="click(info.ppit_mail)" data-icon="custom" data-theme="d">People &amp; Projects mailen</a></li>
 			</ul>
 		</div>
-		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.mandant_telefon">
+		<div data-role="navbar" class="nav-glyphs" ng-show="info.mandant_telefon">
 			<ul>
 				<li><a href="tel:" target="_blank" id="mandant_telefon" class="phone" ng-href="{{info.mandant_telefon}}" ng-click="click(info.mandant_telefon)" data-icon="custom" data-theme="d">Schule anrufen</a></li>
 			</ul>
 		</div>
-		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.mandant_mail">
+		<div data-role="navbar" class="nav-glyphs" ng-show="info.mandant_mail">
 			<ul>
 				<li><a href="mailto:" target="_blank" id="mandant_mail" class="email" ng-href="{{info.mandant_mail}}" ng-click="click(info.mandant_mail)" data-icon="custom" data-theme="d">Schule mailen</a></li>
 			</ul>
