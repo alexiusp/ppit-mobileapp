@@ -3247,17 +3247,29 @@ function PpitKontaktCtrl($scope, Navigation, Auth, Settings, Datasource) {
 				window.clearTimeout($scope.timeoutId);
 				var buttons = $('a.ui-btn');
 				buttons.removeClass("ui-btn-active");
-				var url = 'tel:' + $scope.info[btn];
-				console.log("url:", url);
-				if(_PLATFORM == "android") document.location.href = url;
-				//else window.location.href = 'tel:' + $scope.info[btn];
+				//console.log("href:", btn);
+				var r = window.confirm("href:" + btn);
+				/*if(_PLATFORM == "android") document.location.href = btn;
+				else window.location.href = btn;*/
+				window.location.href = btn;
 			}, 10);
 		}
 	};
 	$scope.init = function() {
 		//console.log('PpitKontaktCtrl.init');
-		$scope.info = Auth.kontakt;
-		if(angular.isDefined($scope.info.ppit_telefon)) $scope.loaded = true;
+		var kontaktInfo = Auth.kontakt;
+		if(angular.isDefined(kontaktInfo.ppit_telefon)) {
+			angular.forEach(Auth.kontakt, function(value, key) {
+				if(key.indexOf('mail') > -1) {
+					kontaktInfo[key] = 'mailto:' + value.trim();
+				}
+				if(key.indexOf('telefon') > -1) {
+					kontaktInfo[key] = 'tel:' + value.trim();
+				}
+			});
+			$scope.info = kontaktInfo;
+			$scope.loaded = true;
+		}
 	};
 	Auth.load();
 	if (Auth.loggedIn()) {
