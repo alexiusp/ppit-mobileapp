@@ -3252,7 +3252,6 @@ function PpitKontaktCtrl($scope, Navigation, Auth, Settings, Datasource) {
 				window.open(btn, '_system');
 			}, 10);
 		}
-		return false;
 	};
 	$scope.init = function() {
 		//console.log('PpitKontaktCtrl.init');

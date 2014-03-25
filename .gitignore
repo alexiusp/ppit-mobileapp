@@ -220,8 +220,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-html/.svn/wc.db
 .db
 html/.svn/wc.db
-html/.svn/wc.db
-html/.svn/wc.db
+.svn/wc.db
