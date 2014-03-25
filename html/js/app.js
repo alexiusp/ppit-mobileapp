@@ -3235,6 +3235,7 @@ function PpitKontaktCtrl($scope, Navigation, Auth, Settings, Datasource) {
 	$scope.ctrlName = "PpitKontaktCtrl";
 	$scope.info = undefined;
 	$scope.timeoutId = undefined;
+	$scope.loaded = false;
 	// go to start page
 	$scope.start = function() {
 		Navigation.go("start");
@@ -3246,13 +3247,17 @@ function PpitKontaktCtrl($scope, Navigation, Auth, Settings, Datasource) {
 				window.clearTimeout($scope.timeoutId);
 				var buttons = $('a.ui-btn');
 				buttons.removeClass("ui-btn-active");
-				document.location.href = 'tel:' + $scope.info[btn];
+				var url = 'tel:' + $scope.info[btn];
+				console.log("url:", url);
+				if(_PLATFORM == "android") document.location.href = url;
+				//else window.location.href = 'tel:' + $scope.info[btn];
 			}, 10);
 		}
 	};
 	$scope.init = function() {
 		//console.log('PpitKontaktCtrl.init');
 		$scope.info = Auth.kontakt;
+		if(angular.isDefined($scope.info.ppit_telefon)) $scope.loaded = true;
 	};
 	Auth.load();
 	if (Auth.loggedIn()) {

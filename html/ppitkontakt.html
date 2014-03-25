@@ -8,24 +8,24 @@
 	</div>
 	<!-- /header -->
 	<div class="jqmpage" data-role="content" class="nav-glyphs">
-		<div data-role="navbar" class="nav-glyphs" ng-show="info.ppit_telefon">
+		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.ppit_telefon">
 			<ul>
-				<li><a href="" id="ppit_telefon" class="phone" ng-click="click('ppit_telefon')" data-icon="custom" data-theme="d">People & Projects anrufen</a></li>
+				<li><a href="tel:" id="ppit_telefon" class="phone" ng-href="tel:{{info.ppit_telefon}}" ng-click="click('ppit_telefon')" data-icon="custom" data-theme="d">People & Projects anrufen</a></li>
 			</ul>
 		</div>
-		<div data-role="navbar" class="nav-glyphs" ng-show="info.ppit_mail">
+		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.ppit_mail">
 			<ul>
-				<li><a href="" id="ppit_mail" ng-href="mailto:{{info.ppit_mail}}" class="email" data-icon="custom" data-theme="d">People & Projects mailen</a></li>
+				<li><a href="mailto:" id="ppit_mail" ng-href="mailto:{{info.ppit_mail}}" class="email" data-icon="custom" data-theme="d">People & Projects mailen</a></li>
 			</ul>
 		</div>
-		<div data-role="navbar" class="nav-glyphs" ng-show="info.mandant_telefon">
+		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.mandant_telefon">
 			<ul>
-				<li><a href="" id="mandant_telefon" class="phone" ng-click="click('mandant_telefon')" data-icon="custom" data-theme="d">Schule anrufen</a></li>
+				<li><a href="tel:" id="mandant_telefon" class="phone" ng-click="click('mandant_telefon')" data-icon="custom" data-theme="d">Schule anrufen</a></li>
 			</ul>
 		</div>
-		<div data-role="navbar" class="nav-glyphs" ng-show="info.mandant_mail">
+		<div data-role="navbar" class="nav-glyphs" ng-show="loaded && info.mandant_mail">
 			<ul>
-				<li><a href="" id="mandant_mail" ng-href="mailto:{{info.mandant_mail}}" class="email" data-icon="custom" data-theme="d">Schule mailen</a></li>
+				<li><a href="mailto:" id="mandant_mail" ng-href="mailto:{{info.mandant_mail}}" class="email" data-icon="custom" data-theme="d">Schule mailen</a></li>
 			</ul>
 		</div>
 	</div>
