@@ -3234,16 +3234,21 @@ function PpitKontaktCtrl($scope, Navigation, Auth, Settings, Datasource) {
 	//console.log('PpitKontaktCtrl');
 	$scope.ctrlName = "PpitKontaktCtrl";
 	$scope.info = undefined;
+	$scope.timeoutId = undefined;
 	// go to start page
 	$scope.start = function() {
 		Navigation.go("start");
 	};
 	$scope.click = function(btn) {
-		//var button = "a#" + btn;
-		//$(button).removeClass("ui-btn-active");
-		var buttons = $('a.ui-btn');
-		console.log('PpitKontaktCtrl.click', buttons);
-		buttons.removeClass("ui-btn-active");
+		//console.log('PpitKontaktCtrl.click', buttons);
+		if(angular.isDefined(btn)) {
+			$scope.timeoutId = window.setTimeout(function() {
+				window.clearTimeout($scope.timeoutId);
+				var buttons = $('a.ui-btn');
+				buttons.removeClass("ui-btn-active");
+				document.location.href = 'tel:' + $scope.info[btn];
+			}, 10);
+		}
 	};
 	$scope.init = function() {
 		//console.log('PpitKontaktCtrl.init');
