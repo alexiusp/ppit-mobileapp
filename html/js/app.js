@@ -2,8 +2,8 @@
 // version 1.4 code 461
 var _VERSION = 461;
 //var _PLATFORM = "debug";
-//var _PLATFORM = "android";
-var _PLATFORM = "ios";
+var _PLATFORM = "android";
+//var _PLATFORM = "ios";
 var _URL = "https://m.people-projects-it.com";
 //var _URL = "https://m.ber.menuplus.de";
 //var _URL = "https://m-proxy.people-projects-it.com";
