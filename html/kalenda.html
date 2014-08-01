@@ -48,7 +48,7 @@
 										<span ng-bind-html-unsafe="menue.menue_text"></span>&nbsp;<span ngm-if="menue.allergie_konflikte.length > 0" style="color: red; font-weight: bold;">!</span><br/>
 										<span ngm-if="menue.preis > 0">Preis: {{menue.preis | currency}}</span>&nbsp;<span ngm-if="menue.menge_verfuegbar <= 0" style="color:white;background-color:red;opacity: 1;">Ausverkauft !</span>
 									</label>
-									<label>
+									<label ngm-if="kalend.details[tagIdx].detail_kostenarten[detailIdx].kostenarten[angebotIdx].pflicht == '0'">
 										<input ng-init="lMenue = agebot.menues.length"
 											ng-click="selectMenue(tagIdx,detailIdx,angebotIdx,lMenue)"
 											ng-checked="isAngemeldet(tag) == false"
@@ -71,17 +71,6 @@
 						<div ngm-if="isAbotageEnabled(tagIdx, detail)">
 							<ul data-role="listview" data-theme="d">
 								<li><label><input data-theme="e" data-mini="true" name="abotage_{{tagIdx}}_checkbox" type="checkbox" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)">{{tag.datum | date:'EEEE'}} als Abo wählen</label></li>
-								<!-- 
-								<li>
-									<fieldset data-role="controlgroup" data-mini="true" data-type="horizontal">
-										<label><input name="abotage_{{tagIdx}}" type="radio" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)" value=1>&nbsp;Ja&nbsp;</label>
-										<label><input name="abotage_{{tagIdx}}" type="radio" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)" value=0>Nein</label>
-									<select name="abotage_{{tagIdx}}" id="abotage_{{tagIdx}}" data-role="slider" ng-model="abotage[tagIdx]" ng-change="aboChange(tagIdx)">
-										<option value="0">Nein</option>
-										<option value="1">Ja</option>
-    							</select>
-    							</fieldset>
-								</li> -->
 							</ul>
 						</div>
 					</div>

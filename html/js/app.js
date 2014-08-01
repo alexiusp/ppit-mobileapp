@@ -1,6 +1,6 @@
 'use strict';
-// version 1.4 code 461
-var _VERSION = 461;
+// version 1.4 code 462
+var _VERSION = 462;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
@@ -2026,9 +2026,10 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		//console.log("Date selected:", $scope.selectedDate);
 		$scope.abotage = [false,false,false,false,false,false,false];
 		$scope.abotageOld = [false,false,false,false,false,false,false];
+		$scope.aboTyp = 0;
 		var profile = Teilnehmer.getProfile(function(data) {
 			// success
-			//console.log("getProfile success: ", data.teilnehmer.abotage);
+			console.log("getProfile success: ", data.teilnehmer);
 			var abotageValue = data.teilnehmer.abotage;
 			var newAbotage = [false,false,false,false,false,false,false];
 			angular.forEach(newAbotage, function(value, key) {
@@ -2039,6 +2040,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 			}, newAbotage);
 			$scope.abotage = angular.copy(newAbotage);
 			$scope.abotageOld = angular.copy(newAbotage);
+			$scope.aboTyp = data.teilnehmer.essenabotyp;
 			//console.log("Abotag init: ", newAbotage);
 			//if(Kalend2.started && !Kalend2.needRefresh) $.mobile.loading('hide'); 
 			$scope.$apply();
@@ -2337,7 +2339,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 	};
 	$scope.isAbotageEnabled = function(tag, detail) {
 		//console.log("isAbotageEnabled tag:", tag);
-		return (detail.detail_kostenartart_id == "5946B518504DCEF79B6D74589C54D4D3") && (detail.kostenarten[0].aenderbar == "1");
+		return (detail.detail_kostenartart_id == "5946B518504DCEF79B6D74589C54D4D3") && (detail.kostenarten[0].aenderbar == "1") && ($scope.aboTyp == 0);
 	};
 
 	/*
