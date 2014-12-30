@@ -4,13 +4,13 @@
         xmlns:android   = "http://schemas.android.com/apk/res/android"
         id = "com.ppit.issmenueplus"
         version = "1.6"
-        versionCode="463">
+        versionCode="464">
 	<name>ISS Menü+</name>
 	<description>
-	    People and Projects IT GmbH © 2013 - 2014
+	    People and Projects IT GmbH © 2013 - 2015
 	</description>
 	<author href="http://www.people-projects-it.com" email="produktentwicklung@people-projects-it.com">
-	    Aleksei Podgaev @ People and Projects IT GmbH © 2013-2014
+	    Aleksei Podgaev @ People and Projects IT GmbH © 2013-2015
 	</author>
 	<gap:platform name="android" />
 	<icon src="icon.png" />

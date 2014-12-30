@@ -1,6 +1,6 @@
 'use strict';
-// version 1.4 code 462
-var _VERSION = 462;
+// version 1.6 code 464
+var _VERSION = 464;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
@@ -103,7 +103,7 @@ angular.module("ngLocale", [], [
 		} ]);
 /**
  * The main ISS Mobile App app module.
- * (c) PPIT 2013-2014
+ * (c) PPIT 2013-2015
  * 
  * @type {angular.Module}
  */
@@ -2029,7 +2029,7 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		$scope.aboTyp = 0;
 		var profile = Teilnehmer.getProfile(function(data) {
 			// success
-			console.log("getProfile success: ", data.teilnehmer);
+			//console.log("getProfile success: ", data.teilnehmer);
 			var abotageValue = data.teilnehmer.abotage;
 			var newAbotage = [false,false,false,false,false,false,false];
 			angular.forEach(newAbotage, function(value, key) {
