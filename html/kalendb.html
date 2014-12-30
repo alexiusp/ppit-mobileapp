@@ -33,7 +33,7 @@
 				<div ngm-if="!isEmptyDay(tag)">
 					<div ng-repeat="detail in kalend.details[tagIdx].detail_kostenarten">
 						<div class="ui-grid-solo detail-header">
-							<div class="ui-block-a"><div class="ui-bar ui-bar-e"><span ng-bind="getDetailTitle(tagIdx, detail.detail_kostenartart_id)"></span> test</div></div>
+							<div class="ui-block-a"><div class="ui-bar ui-bar-e"><span ng-bind="getDetailTitle(tagIdx, detail.detail_kostenartart_id)"></span></div></div>
 						</div>
 						<ul ng-init="detailIdx = $index" data-role="listview" ng-repeat="angebot in detail.kostenarten" data-theme="d" data-split-icon="info" data-split-theme="d">
 							<li ng-init="angebotIdx = $index" ngm-if="angebot.menues.length > 0">
