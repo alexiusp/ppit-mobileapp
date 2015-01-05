@@ -4,7 +4,7 @@
         xmlns:android   = "http://schemas.android.com/apk/res/android"
         id = "com.ppit.issmenueplus"
         version = "1.6"
-        versionCode="464">
+        versionCode="465">
 	<name>ISS Menü+</name>
 	<description>
 	    People and Projects IT GmbH © 2013 - 2015

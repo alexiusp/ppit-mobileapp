@@ -1,6 +1,6 @@
 'use strict';
-// version 1.6 code 464
-var _VERSION = 464;
+// version 1.6 code 465
+var _VERSION = 465;
 //var _PLATFORM = "debug";
 var _PLATFORM = "android";
 //var _PLATFORM = "ios";
@@ -461,6 +461,7 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Navigat
 						Auth.relogin(DS.request, reloginParams);
 					} else {
 						//if(data.fehler )
+						if(failureHandler) failureHandler(data);
 						if(angular.isDefined(data.fehlermessage)) {
 							Messages.addMessage("err", "Fehler", data.fehlermessage);
 						} else {
@@ -477,8 +478,8 @@ var DatasourceSvc = ppitapp.factory('Datasource', ['$http', 'Messages', 'Navigat
 		}).error(function(data, status, headers, config) {
 			$.mobile.loading('hide');
 			//console.log("DS.request failure", data, status, headers, config);
-			DS.handleError(status, data);
 			if(failureHandler) failureHandler(data);
+			DS.handleError(status, data);
 		});
 	};
 	DS.handleError = function(status, data) {
@@ -504,6 +505,12 @@ var MessagesSvc = ppitapp.factory('Messages', [function() {
 	M.messageTypes = ["err", "wait", "info", "warnung"];
 	M.baseMessages = {
 			"err"	: {
+				"action": "ok",
+				"title"	: "Fehler",
+				"text"	: "Fehler",
+				"image"	: "css/images/warn.png"
+			},
+			"auth"	: {
 				"action": "refresh",
 				"title"	: "Fehler",
 				"text"	: "Fehler",
@@ -681,11 +688,11 @@ var AuthSvc = ppitapp.factory('Auth', ['$http', 'Messages', 'Navigation', functi
 				} else {
 					//console.log( "false login: ", data );
 					if(data.result.status == 0) {
-						Messages.addMessage("err", undefined, "Benutzername oder Passwort falsch!");
+						Messages.addMessage("auth", undefined, "Benutzername oder Passwort falsch!");
 					} else if(data.result.status < 0){
 						Messages.addMessage("err", undefined, data.fehlermessage);
 					} else if(data.result.status > 0) {
-						Messages.addMessage("err", undefined, "Benutzername oder Passwort falsch! Sie müssen " + data.result.status + " Sekunden warten");
+						Messages.addMessage("auth", undefined, "Benutzername oder Passwort falsch! Sie müssen " + data.result.status + " Sekunden warten");
 					}
 					if (failHandler)
 						failHandler(data);
@@ -1312,9 +1319,9 @@ var KalendSvc = ppitapp.factory('Kalend2', ['Auth', 'Datasource', '$window', fun
 	Kalender.saveAbo = function(aboTage, success) {
 		Datasource.request('kalend-abotag', {'sk' : Auth.sessionKey, 'abotage' : aboTage}, success);
 	};
-	Kalender.saveMenue = function(auswahl, success) {
+	Kalender.saveMenue = function(auswahl, success, failure) {
 		//alert("Kalender.saveMenue");
-		Datasource.request('kalend-menue', {'sk' : Auth.sessionKey, 'auswahl' : auswahl}, success);
+		Datasource.request('kalend-menue', {'sk' : Auth.sessionKey, 'auswahl' : auswahl}, success, failure);
 	};
 	return Kalender;
 }]);
@@ -2398,11 +2405,13 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 		auswahl.essen.menue_nr = 1 * $scope.selectedMenue.menue.menue_nr;
 		auswahl.essen.datum = $scope.selectedMenue.selectedMenueDate;
 		auswahl.essen.komponenten = [];
-		var l = $scope.selectedMenue.menue.ersatzkomponenten.length;
-		if(l > 0) {
-			for(var i = 0; i < l; i++) {
-				if($scope.selectedMenue.menue.ersatzkomponenten[i].ausgewaehlt == true || $scope.selectedMenue.menue.ersatzkomponenten[i].ausgewaehlt == 1) {
-					auswahl.essen.komponenten.push($scope.selectedMenue.menue.ersatzkomponenten[i].speise_id);
+		if(angular.isDefined($scope.selectedMenue.menue.ersatzkomponenten)) {
+			var l = $scope.selectedMenue.menue.ersatzkomponenten.length;
+			if(l > 0) {
+				for(var i = 0; i < l; i++) {
+					if($scope.selectedMenue.menue.ersatzkomponenten[i].ausgewaehlt == true || $scope.selectedMenue.menue.ersatzkomponenten[i].ausgewaehlt == 1) {
+						auswahl.essen.komponenten.push($scope.selectedMenue.menue.ersatzkomponenten[i].speise_id);
+					}
 				}
 			}
 		}
@@ -2422,6 +2431,11 @@ function KalenderCtrl3(Navigation, Teilnehmer, $scope, Kalend2, Auth, $routePara
 				Kalend2.needRefresh = true;
 				$scope.dataReady = false;
 				$scope.init();
+			}
+		}, function(data) {
+			if(angular.isDefined(data.fehlermessage) && data.fehlermessage != "") {
+				$("#postResult").html(data.fehlermessage);
+				console.error('error: ', data.fehlermessage);
 			}
 		});
 		//$scope.$apply();
