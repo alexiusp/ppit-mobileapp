@@ -3,8 +3,8 @@
         xmlns:gap = "http://phonegap.com/ns/1.0"
         xmlns:android   = "http://schemas.android.com/apk/res/android"
         id = "com.ppit.issmenueplus"
-        version = "1.6"
-        versionCode="465">
+        version = "1.7"
+        versionCode="466">
 	<name>ISS Menü+</name>
 	<description>
 	    People and Projects IT GmbH © 2013 - 2015
